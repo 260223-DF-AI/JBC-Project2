@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import sys
 from pathlib import Path
 
 from google.cloud import bigquery, storage
@@ -26,7 +27,7 @@ def upload_parquet_files(
 
         blob = bucket.blob(blob_name)
         blob.upload_from_filename(str(file_path))
-        # TODO Log and archive upload here 
+        # TODO Log and archive upload here, check for alreayd uploaded files using hash?
 
 
 def main():
@@ -34,6 +35,10 @@ def main():
     load_dotenv()
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
+    proceed = input("Proceed? ").lower()
+    if proceed not in ["y", "yes"]:
+        sys.exit()
+
 
 if __name__ == "__main__":
     main()

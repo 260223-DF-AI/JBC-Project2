@@ -38,28 +38,19 @@ def convert_to_parquet(chunk_size: int = 10_000):
     for csv in csvs:
         csv_chunks = pd.read_csv(csv, chunksize=chunk_size)
 
+        files_exist: bool = parquets_exists()
+
         for chunk in csv_chunks:
-            transactions_df: pd.DataFrame = chunk.filter(items=table_columns["transactions"], axis=1)
-            stores_df: pd.DataFrame = chunk.filter(items=table_columns["stores"], axis=1)
-            date_df: pd.DataFrame = chunk.filter(items=table_columns["dates"], axis=1)
-            products_df: pd.DataFrame = chunk.filter(items=table_columns["products"], axis=1)
-            customers_df: pd.DataFrame = chunk.filter(items=table_columns["customers"], axis=1)
 
-            # initial write
-            if not parquets_exists():
-                transactions_df.to_parquet(data_folder + "transactions.parquet", engine='fastparquet')
-                stores_df.to_parquet(data_folder + "stores.parquet", engine='fastparquet')
-                date_df.to_parquet(data_folder + "date.parquet", engine='fastparquet')
-                products_df.to_parquet(data_folder + "products.parquet", engine='fastparquet')
-                customers_df.to_parquet(data_folder + "customers.parquet", engine='fastparquet')
+            for table_name, columns in table_columns.items():
+                df = chunk.filter(items=columns, axis=1)
+                file_path: str = f"{data_folder}{table_name}.parquet"
 
-            # append if file already made
-            else:
-                transactions_df.to_parquet(data_folder + "transactions.parquet", engine='fastparquet', append=True)
-                stores_df.to_parquet(data_folder + "stores.parquet", engine='fastparquet', append=True)
-                date_df.to_parquet(data_folder + "date.parquet", engine='fastparquet', append=True)
-                products_df.to_parquet(data_folder + "products.parquet", engine='fastparquet', append=True)
-                customers_df.to_parquet(data_folder + "customers.parquet", engine='fastparquet', append=True)
+                df.to_parquet(
+                    file_path,
+                    engine='fastparquet',
+                    append=files_exist
+                )
 
 
 if __name__ == "__main__":

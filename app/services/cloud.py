@@ -6,7 +6,6 @@ from pathlib import Path
 from datetime import datetime
 import time
 import logging
-import json
 import crc32c
 import base64
 
@@ -28,18 +27,18 @@ def compute_local_crc32c(file_path: str) -> str:
             hash_crc = crc32c.crc32c(chunk, hash_crc) # according to docs, this will be the same as making a hash of the entire file at once
     return base64.b64encode(hash_crc.to_bytes(4, byteorder="big")).decode("utf-8")
 
-def blob_check(blob, local_md5: str) -> bool:
+def blob_check(blob, local_crc: str) -> bool:
     """
-    Checks if blob exists on GCS and the MD5 hash matches
+    Checks if blob exists on GCS and the CRC32C hash matches
     """
     try:
         blob.reload()
-        return blob.md5_hash == local_md5
+        return blob.crc32 == local_crc
     except NotFound:
         return False
 
 @retry_with_backoff(max_retries=3, base_delay=2, max_delay=16)
-def upload_single_file(blob, file_path: str, local_md5: str, chunk_size_mb: int = 256):
+def upload_single_file(blob, file_path: str, local_crc: str, chunk_size_mb: int = 256):
     """
     Upload a single file to GCS with retry logic, using chunked uploads to limit memory usage.
     """
@@ -47,8 +46,8 @@ def upload_single_file(blob, file_path: str, local_md5: str, chunk_size_mb: int 
     blob.upload_from_filename(str(file_path), chunk_size=chunk_size_bytes, resumable=True)
     # Verify the upload
     blob.reload()
-    if blob.md5_hash != local_md5:
-        raise ValueError(f"GCS hash does not match local after upload. File: {file_path}, Local: {local_md5}, GCS: {blob.md5_hash}")
+    if blob.crc32 != local_crc:
+        raise ValueError(f"GCS hash does not match local after upload. File: {file_path}, Local: {local_crc}, GCS: {blob.crc32c}")
 
 def upload_parquet_files(
         bucket_name: str,
@@ -86,18 +85,18 @@ def upload_parquet_files(
     
     for file_idx, file_path in enumerate(parquet_files, 1):
         file_name = file_path.name
-        local_md5 = None
+        local_crc = None
         try:
             logger.debug(f"Processing file {file_idx}/{len(parquet_files)}: {file_name}")
             
-            # Compute local MD5
+            # Compute local CRC32C
             start_time = time.time()
-            local_md5 = compute_local_md5(str(file_path))
+            local_crc = compute_local_crc32c(str(file_path))
             
             # Check audit log to prevent duplicate processing
-            if check_audit_log("audit_log.json", local_md5, source_system, table_name):
+            if check_audit_log("audit_log.json", local_crc, source_system, table_name):
                 logger.info(f"File {file_name} already processed according to audit log, skipping.")
-                results["skipped"].append({"name": file_path.name, "hash": local_md5})
+                results["skipped"].append({"name": file_path.name, "hash": local_crc})
                 continue
             
             # Construct GCS blob path
@@ -105,20 +104,20 @@ def upload_parquet_files(
             blob = bucket.blob(blob_name)
             
             # If blob already uploaded to bucket and has matching hash, skip this file since the GCS copy is the same, don't need to reupload
-            if blob_check(blob, local_md5):
+            if blob_check(blob, local_crc):
                 logger.info(f"File {file_name} already exists in GCS with matching hash, skipping.")
-                results["skipped"].append({"name": file_path.name, "hash": local_md5})
+                results["skipped"].append({"name": file_path.name, "hash": local_crc})
                 continue
 
             # Upload file with retry logic
             logger.info(f"Uploading {file_name} to {blob_name}")
-            upload_single_file(blob, file_path, local_md5, chunk_size_mb)
-            results["uploaded"].append({"name": file_path.name, "hash": local_md5})
+            upload_single_file(blob, file_path, local_crc, chunk_size_mb)
+            results["uploaded"].append({"name": file_path.name, "hash": local_crc})
 
         except Exception as e:
-            # Unexpected error (e.g., can't compute MD5, upload failed)
+            # Unexpected error (e.g., can't compute CRC32C, upload failed)
             logger.error(f"Unexpected error processing {file_name}: {type(e).__name__}: {e}")
-            results["failed"].append({"name": file_name, "hash": local_md5, "error": str(e)})
+            results["failed"].append({"name": file_name, "hash": local_crc, "error": str(e)})
     
     # Add end time and summary
     results["batch_summary"]["end_time"] = datetime.utcnow().isoformat()

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from .routers import data_files
 
 app = FastAPI(
     title = "JBC API",
@@ -6,12 +7,12 @@ app = FastAPI(
     )
 
 
-# when we define routers in routers folder
-# app.include_router(salesroutes.router)
-
 @app.get("/")
 def get_root():
     return {"message": "Hello from main"}
+
+# add router endpoints to app!
+app.include_router(data_files.router)
 
 
 def start_server():
@@ -19,4 +20,4 @@ def start_server():
     Launch the API server with Uvicorn
     """
     import uvicorn
-    uvicorn.run("server:app", host="localhost", port=8000, reload=True)
+    uvicorn.run("app.server:app", host="localhost", port=8000, reload=True)

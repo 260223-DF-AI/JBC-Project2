@@ -3,9 +3,7 @@ import os
 import sys
 
 
-data_folder: str = "data/"
-
-def parquets_exists():
+def parquets_exists(data_folder: str):
     """
     Return True if Parquet files are created and in data folder,
     Return False otherwise
@@ -16,7 +14,7 @@ def parquets_exists():
     return len([1 for file in files if file.endswith("parquet")]) == 5
 
 
-def convert_to_parquet(chunk_size: int = 10_000) -> list[str]:
+def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     """
     Efficiently convert CSV data to a parquet file
     """
@@ -56,4 +54,4 @@ def convert_to_parquet(chunk_size: int = 10_000) -> list[str]:
 
 
 if __name__ == "__main__":
-    convert_to_parquet()
+    convert_to_parquet("data/")

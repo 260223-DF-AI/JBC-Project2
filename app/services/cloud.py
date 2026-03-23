@@ -160,7 +160,9 @@ def main():
 
 
 if __name__ == "__main__":
+    import pandas as pd
+    from app.services.conversion import something
+
     main()
-    parquets_folder_path = "" #TODO Replace with parquet file locations 
+    parquets_folder_path = "" 
     results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "stg_sales")
-    #results that should already be logged for report

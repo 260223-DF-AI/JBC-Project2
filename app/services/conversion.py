@@ -3,9 +3,7 @@ import os
 import sys
 
 
-data_folder: str = "data/"
-
-def parquets_exists():
+def parquets_exists(data_folder: str):
     """
     Return True if Parquet files are created and in data folder,
     Return False otherwise
@@ -16,7 +14,7 @@ def parquets_exists():
     return len([1 for file in files if file.endswith("parquet")]) == 5
 
 
-def convert_to_parquet(chunk_size: int = 10_000):
+def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     """
     Efficiently convert CSV data to a parquet file
     """
@@ -37,21 +35,23 @@ def convert_to_parquet(chunk_size: int = 10_000):
     # read each csv in chunks, appending to parquet files as we go 
     for csv in csvs:
         csv_chunks = pd.read_csv(csv, chunksize=chunk_size)
-
         files_exist: bool = parquets_exists()
 
         for chunk in csv_chunks:
-
             for table_name, columns in table_columns.items():
                 df = chunk.filter(items=columns, axis=1)
                 file_path: str = f"{data_folder}{table_name}.parquet"
-
+                
+                # append or write to file depending on whether it already exists 
                 df.to_parquet(
                     file_path,
                     engine='fastparquet',
                     append=files_exist
                 )
 
+    parquet_file_paths: list[str] = [f"{data_folder}{table_name}" for table_name in table_columns.keys()]
+    return parquet_file_paths
+
 
 if __name__ == "__main__":
-    convert_to_parquet()
+    convert_to_parquet("data/")

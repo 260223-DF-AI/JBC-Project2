@@ -1,0 +1,11 @@
+TransactionID,Date,StoreID,StoreLocation,Region,State,CustomerID,CustomerName,Segment,ProductID,ProductName,Category,SubCategory,Quantity,UnitPrice,DiscountPercent,TaxAmount,ShippingCost,TotalAmount
+250001,2025-10-26,S005,Colfax Denver,West,CO,C008,Holden Caulfield,Consumer,P104,Ballpoint Multipack,Office Supplies,Pens,10,20.59,0.14,14.17,29.78,221.02
+250002,2025-06-24,S001,Downtown Boston,East,MA,C004,Diana Prince,Consumer,P102,iPhone 15 Pro,Electronics,Smartphone,9,537.06,0.19,313.21,13.79,4242.17
+250003,2025-11-18,S001,Downtown Boston,East,MA,C006,Fiona Apple,Home Office,P101,Latitude 15,Electronics,Laptop,10,534.69,0.17,355.03,11.28,4804.24
+250004,2025-02-30,S007,Times Square NY,East,NY,C003,Charlie Brown,Home Office,P101,Latitude 15,Electronics,Laptop,6,217.0,0.03,101.04,16.49,1380.47
+250005,2025-12-11,S007,Times Square NY,East,NY,C004,Diana Prince,Consumer,P106,Standard Copy Paper,Office Supplies,Paper,9,47.45,0.04,32.8,29.78,472.55
+250006,2025-03-23,S001,Downtown Boston,East,MA,C004,Diana Prince,Consumer,P105,Dell Quad display,Electronics,Monitor,2,1234.93,0.24,150.17,17.5,2044.76
+250007,2025-05-14,S008,SoMa San Francisco,West,CA,C005,Ethan Hunt,Corporate,P101,Latitude 15,Electronics,Laptop,6,777.47,0.01,369.45,25.34,5012.96
+250008,2025-05-08,S001,Downtown Boston,East,MA,C001,Alice Smith,Consumer,P106,Standard Copy Paper,Office Supplies,Paper,10,49.09,0.24,29.85,19.51,422.44
+250009,2025-08-28,S005,Colfax Denver,West,CO,C004,Diana Prince,Consumer,P103,Ergonomic Chair x200,Furniture,Seating,9,,0.15,286.78,16.27,
+250010,2025-04-03,S001,Downtown Boston,East,MA,C008,Holden Caulfield,Consumer,P106,Standard Copy Paper,Office Supplies,Paper,5,9.81,0.15,3.34,21.41,66.44

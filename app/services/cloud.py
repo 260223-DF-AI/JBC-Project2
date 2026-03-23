@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import logging
 import json
-import hashlib
+import crc32c
 import base64
 
 from google.cloud import storage
@@ -18,15 +18,15 @@ from app.services.retry import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
-def compute_local_md5(file_path: str) -> str:
+def compute_local_crc32c(file_path: str) -> str:
     """
-    Returns base-64 encoded MD5
+    Returns base-64 encoded CRC32C
     """
-    hash_md5 = hashlib.md5()
+    hash_crc = crc32c.crc32c(b"")
     with open(file_path, "rb") as f: #read-only binary mode
         for chunk in iter(lambda: f.read(8192), b""):
-            hash_md5.update(chunk) # according to docs, this will be the same as making a hash of the entire file at once
-    return base64.b64encode(hash_md5.digest()).decode("utf-8")
+            hash_crc = crc32c.crc32c(chunk, hash_crc) # according to docs, this will be the same as making a hash of the entire file at once
+    return base64.b64encode(hash_crc.to_bytes(4, byteorder="big")).decode("utf-8")
 
 def blob_check(blob, local_md5: str) -> bool:
     """

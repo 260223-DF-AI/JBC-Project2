@@ -12,6 +12,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+from .routers import data_files
 
 app = FastAPI(
     title = "JBC API",
@@ -32,19 +33,12 @@ async def shutdown_event():
     logger.info("Shutting down JBC Sales Data API")
 
 
-# when we define routers in routers folder
-# app.include_router(salesroutes.router)
-
 @app.get("/")
 def get_root():
     return {"message": "Hello from main"}
 
-@app.post("/convert")
-def post_convert():
-    """
-    Trigger conversion of .csv from local storage and process into .parquet
-    cloud asset, then upload to GCS
-    """
+# add router endpoints to app!
+app.include_router(data_files.router)
 
 
 def start_server():
@@ -52,4 +46,4 @@ def start_server():
     Launch the API server with Uvicorn
     """
     import uvicorn
-    uvicorn.run("server:app", host="localhost", port=8000, reload=True)
+    uvicorn.run("app.server:app", host="localhost", port=8000, reload=True)

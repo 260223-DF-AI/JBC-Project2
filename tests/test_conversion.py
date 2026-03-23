@@ -29,8 +29,9 @@ def test_incorrect_file_type_parquets_exists():
     assert not conversion.parquets_exists()
 
     # remove the incorrect files we created so next test runs properly
-    for i in range(5):
-        os.remove(f"{conversion.data_folder}/file_{i}.txt")
+    filelist = [f for f in os.listdir(conversion.data_folder) if f.endswith(".txt")]
+    for f in filelist:
+        os.remove(os.path.join(conversion.data_folder, f))
 
 
 def test_parquets_exists():
@@ -53,6 +54,6 @@ def test_parquets_exists():
     assert conversion.parquets_exists()
 
     # remove the files we created so next test runs properly
-    filelist = [f for f in os.listdir(conversion.data_folder) if not f.startswith(".")]
+    filelist = [f for f in os.listdir(conversion.data_folder) if f.endswith(".parquet") or f.endswith(".txt")]
     for f in filelist:
         os.remove(os.path.join(conversion.data_folder, f))

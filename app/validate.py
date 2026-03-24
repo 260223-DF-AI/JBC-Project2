@@ -17,4 +17,12 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
     # columns with some known nulls: UnitPrice, DiscountPercent, TaxAmount, ShippingCost, TotalAmount
     df.dropna(axis=0, inplace=True)
 
+    # convert pandas string dtype to object
+    str_cols = [c for c in df.columns if pd.api.types.is_string_dtype(df[c])]
+    for col in str_cols:
+        df[col] = df[col].astype("object")
+
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d", errors="coerce")
+
     return df

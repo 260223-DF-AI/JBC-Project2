@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import sys
 
-from ..validate import validate_df
+from ..utils.validate import validate_df
 
 
 def delete_existing_parquets(data_folder: str):

@@ -1,9 +1,11 @@
 import pandas as pd
 import os
 import sys
+import logging
 
 from ..validate import validate_df
 
+logger = logging.getLogger(__name__)
 
 def delete_existing_parquets(data_folder: str):
     """
@@ -23,9 +25,13 @@ def delete_existing_parquets(data_folder: str):
             if entry.is_file() and entry.name.endswith('.parquet'):
                 try:
                     os.remove(entry.path)
-                    print(f"Deleted: {entry.name}")
+                    msg = f"Deleted: {entry.name}"
+                    print(msg)
+                    logger.info(msg)
                 except OSError as e:
-                    print(f"Error deleting {entry.name}: {e}")
+                    msg = f"Error deleting {entry.name}: {e}"
+                    print(msg)
+                    logger.error(msg)
 
 
 def parquets_exists(data_folder: str):
@@ -78,6 +84,9 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
                     engine='fastparquet',
                     append=files_exist
                 )
+        msg = f"Converted {csv} to parquet ({file_path})"
+        print(msg)
+        logger.info(msg)
 
     parquet_file_paths: list[str] = [f"{data_folder}{table_name}" for table_name in table_columns.keys()]
     return parquet_file_paths

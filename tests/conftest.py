@@ -50,7 +50,9 @@ def _create_dir(path: str) -> None:
 
 @pytest.fixture(scope="session", autouse=True)
 def create_test_fixtures():
-    """Create all test sample directories and files before the test session."""
+    """
+    Create all test sample directories and files before the test session.
+    """
 
     # creates empty_samples folder with no files included
     _create_dir("tests/empty_samples")

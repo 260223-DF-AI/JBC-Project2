@@ -165,9 +165,9 @@ def main():
             sys.exit()
 
 if __name__ == "__main__":
-    # from app.services.conversion import convert_to_parquet
+    from app.services.conversion import convert_to_parquet
 
-    # convert_to_parquet("data/")
+    convert_to_parquet("data/")
 
     main()
 

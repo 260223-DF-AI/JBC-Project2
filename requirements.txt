@@ -25,9 +25,11 @@ grpcio==1.78.0
 grpcio-status==1.78.0
 h11==0.16.0
 idna==3.11
+iniconfig==2.3.0
 numpy==2.4.3
 packaging==26.0
 pandas==3.0.1
+pluggy==1.6.0
 proto-plus==1.27.1
 protobuf==6.33.6
 pyasn1==0.6.3
@@ -35,6 +37,8 @@ pyasn1_modules==0.4.2
 pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
+Pygments==2.19.2
+pytest==9.0.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 requests==2.32.5

@@ -1,0 +1,11 @@
+TransactionID,Date,StoreID,StoreLocation,Region,State,CustomerID,CustomerName,Segment,ProductID,ProductName,Category,SubCategory,Quantity,UnitPrice,DiscountPercent,TaxAmount,ShippingCost,TotalAmount
+750001,2025-11-14,S001,Downtown Boston,East,MA,C003,Charlie Brown,Home Office,P105,Dell Quad display,Electronics,Monitor,1,409.67,0.15,27.86,9.14,385.22
+750002,2025-10-21,S007,Times Square NY,East,NY,C001,Alice Smith,Consumer,P103,Ergonomic Chair x200,Furniture,Seating,3,86.9,0.18,17.1,7.68,238.55
+750003,2025-04-19,S008,SoMa San Francisco,West,CA,C003,Charlie Brown,Home Office,P103,Ergonomic Chair x200,Furniture,Seating,5,458.87,0.07,170.7,21.45,2325.9
+750004,2025-02-09,S006,Brickell Miami,South,FL,C008,Holden Caulfield,Consumer,P108,MX Master 3S,Electronics,Mouse,6,244.75,0.03,113.96,12.9,1551.31
+750005,2025-05-06,S005,Colfax Denver,West,CO,C006,Fiona Apple,Home Office,P107,Filing Cabinet 3-Tier,Furniture,Storage,4,127.13,0.08,37.43,9.36,514.63
+750006,2025-02-18,S002,Tech Ridge Austin,South,TX,C007,George Costanza,Consumer,P104,Ballpoint Multipack,Office Supplies,Pens,8,35.42,0.12,19.95,16.03,285.34
+750007,2025-10-13,S006,Brickell Miami,South,FL,C008,Holden Caulfield,Consumer,P104,Ballpoint Multipack,Office Supplies,Pens,9,44.5,0.24,24.35,6.6,335.33
+750008,2025-11-06,S003,Belltown Seattle,West,WA,C008,Holden Caulfield,Consumer,P108,MX Master 3S,Electronics,Mouse,2,163.14,0.04,25.06,12.01,350.3
+750009,2025-02-05,S006,Brickell Miami,South,FL,C003,Charlie Brown,Home Office,P101,Latitude 15,Electronics,Laptop,10,283.09,0.11,201.56,5.64,2726.7
+750010,2025-05-12,S003,Belltown Seattle,West,WA,C001,Alice Smith,Consumer,P106,Standard Copy Paper,Office Supplies,Paper,5,41.93,0.2,13.42,5.46,186.6

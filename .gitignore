@@ -28,6 +28,12 @@ Thumbs.db
 .env
 .env.local
 .coverage
+
+# Generated folders and files
+tests/empty_samples/*
+tests/incorrect_samples/*
+tests/samples/*
+tests/conversion_samples/*
 logs/*
 
 # Carl's API

@@ -150,7 +150,7 @@ def upload_parquet_files(
     return results
 
 
-def main():
+def connect():
     """Connect to our GCS Bucket"""
     load_dotenv()
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     convert_to_parquet("data/")
 
-    main()
+    connect()
 
     parquets_folder_path = "data/"
     results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

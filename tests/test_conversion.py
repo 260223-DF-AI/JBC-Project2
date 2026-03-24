@@ -10,6 +10,7 @@ from app.services import conversion
 def test_empty_parquets_exists():
     """Tests the parquets_exists function when the empty_samples folder is empty"""
 
+    
     # should return False since no parquet files exist within the empty_samples folder
     assert not conversion.parquets_exists("tests/empty_samples/")
 

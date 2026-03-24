@@ -1,0 +1,11 @@
+TransactionID,Date,StoreID,StoreLocation,Region,State,CustomerID,CustomerName,Segment,ProductID,ProductName,Category,SubCategory,Quantity,UnitPrice,DiscountPercent,TaxAmount,ShippingCost,TotalAmount
+1000001,2025-06-17,S005,Colfax Denver,West,CO,C005,Ethan Hunt,Corporate,P101,Latitude 15,Electronics,Laptop,10,151.9,0.14,104.51,25.46,1436.31
+1000002,2025-02-18,S003,Belltown Seattle,West,WA,C001,Alice Smith,Consumer,P107,Filing Cabinet 3-Tier,Furniture,Storage,9,245.18,0.12,155.35,24.68,2121.86
+1000003,2025-02-17,S006,Brickell Miami,South,FL,C001,Alice Smith,Consumer,P102,iPhone 15 Pro,Electronics,Smartphone,8,971.93,0.16,522.51,23.46,7077.34
+1000004,2025-10-25,S004,Magnificent Mile Chicago,Midwest,IL,C006,Fiona Apple,Home Office,P101,Latitude 15,Electronics,Laptop,5,168.72,0.13,58.71,7.96,800.6
+1000005,2025-06-06,S004,Magnificent Mile Chicago,Midwest,IL,C006,Fiona Apple,Home Office,P101,Latitude 15,Electronics,Laptop,2,666.5,0.16,89.58,28.9,1238.2
+1000006,2025-05-16,S004,Magnificent Mile Chicago,Midwest,IL,C001,Alice Smith,Consumer,P107,Filing Cabinet 3-Tier,Furniture,Storage,4,451.74,0.08,132.99,16.29,1811.68
+1000007,2025-12-29,S005,Colfax Denver,West,CO,C001,Alice Smith,Consumer,P105,Dell Quad display,Electronics,Monitor,9,658.95,0.15,403.28,18.61,5462.86
+1000008,2025-09-18,S002,Tech Ridge Austin,South,TX,C008,Holden Caulfield,Consumer,P105,Dell Quad display,Electronics,Monitor,9,163.22,0.09,106.94,12.27,1455.98
+1000009,2025-02-25,S003,Belltown Seattle,West,WA,C005,Ethan Hunt,Corporate,P103,Ergonomic Chair x200,Furniture,Seating,5,495.74,0.06,186.4,5.66,2522.04
+1000010,2025-11-30,S008,SoMa San Francisco,West,CA,C004,Diana Prince,Consumer,P102,iPhone 15 Pro,Electronics,Smartphone,1,1339.21,0.11,95.35,22.45,1309.7

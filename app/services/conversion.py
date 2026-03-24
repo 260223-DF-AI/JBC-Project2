@@ -16,7 +16,8 @@ def delete_existing_parquets(data_folder: str):
 
     # ensure directory exists
     if not os.path.exists(data_folder):
-        print(f"Directory '{data_folder}' not found. Skipping cleanup.")
+        msg = f"Directory '{data_folder}' not found. Skipping cleanup."
+        logger.warning(msg)
         return
 
     # delete parquet files
@@ -26,11 +27,9 @@ def delete_existing_parquets(data_folder: str):
                 try:
                     os.remove(entry.path)
                     msg = f"Deleted: {entry.name}"
-                    print(msg)
                     logger.info(msg)
                 except OSError as e:
                     msg = f"Error deleting {entry.name}: {e}"
-                    print(msg)
                     logger.error(msg)
 
 
@@ -85,7 +84,6 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
                     append=files_exist
                 )
         msg = f"Converted {csv} to parquet ({file_path})"
-        print(msg)
         logger.info(msg)
 
     parquet_file_paths: list[str] = [f"{data_folder}{table_name}" for table_name in table_columns.keys()]

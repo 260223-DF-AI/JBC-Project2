@@ -92,5 +92,38 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     return parquet_file_paths
 
 
+def find_disk_savings_pct(data_folder: str) -> float:
+    """
+    Return the disk savings, as a percentage, from converting CSVs to .parquets.
+    """
+
+    csv_total_size = 0
+    parquet_total_size = 0
+    
+    if not os.path.exists(data_folder):
+        raise FileNotFoundError(f"The directory {data_folder} does not exist.")
+
+    # check folder
+    with os.scandir(data_folder) as entries:
+        for entry in entries:
+            if entry.is_file():
+                if entry.name.endswith('.csv'):
+                    csv_total_size += entry.stat().st_size
+                elif entry.name.endswith('.parquet'):
+                    parquet_total_size += entry.stat().st_size
+
+    # avoid DivideByZero
+    if csv_total_size == 0:
+        return 0.0
+
+    savings = (csv_total_size - parquet_total_size) / csv_total_size
+    
+    # convert to percentage
+    return savings * 100
+
+
+
+
 if __name__ == "__main__":
-    convert_to_parquet("data/")
+    # convert_to_parquet("data/")
+    print(f'{find_disk_savings_pct("data/"):.2f}%')

@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import sys
 
+from ..validate import validate_df
+
 
 def parquets_exists(data_folder: str):
     """
@@ -35,12 +37,14 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     # read each csv in chunks, appending to parquet files as we go 
     for csv in csvs:
         csv_chunks = pd.read_csv(csv, chunksize=chunk_size)
-        files_exist: bool = parquets_exists()
+        files_exist: bool = parquets_exists(data_folder)
 
         for chunk in csv_chunks:
             for table_name, columns in table_columns.items():
                 df = chunk.filter(items=columns, axis=1)
                 file_path: str = f"{data_folder}{table_name}.parquet"
+
+                df = validate_df(df)
                 
                 # append or write to file depending on whether it already exists 
                 df.to_parquet(

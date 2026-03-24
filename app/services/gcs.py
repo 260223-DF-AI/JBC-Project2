@@ -155,15 +155,19 @@ def main():
     load_dotenv()
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
-    proceed = input("Connected to GCP successfully. Proceed? ").lower()
-    if proceed not in ["y", "yes"]:
-        sys.exit()
 
+    proceed = ""
+    while True:
+        proceed = input("Connected to GCP successfully. Proceed? (y/n) ").lower()
+        if proceed in ["y", "yes"]:
+            break
+        elif proceed in ["n", "no"]:
+            sys.exit()
 
 if __name__ == "__main__":
-    from app.services.conversion import convert_to_parquet
+    # from app.services.conversion import convert_to_parquet
 
-    convert_to_parquet("data/")
+    # convert_to_parquet("data/")
 
     main()
 

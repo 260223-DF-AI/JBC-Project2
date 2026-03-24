@@ -5,6 +5,29 @@ import sys
 from ..utils.validate import validate_df
 
 
+def delete_existing_parquets(data_folder: str):
+    """
+    Having pre-generated parquet files from an earlier run of
+    the project will result in error. This function removes
+    pre-existing parquet files
+    """
+
+    # ensure directory exists
+    if not os.path.exists(data_folder):
+        print(f"Directory '{data_folder}' not found. Skipping cleanup.")
+        return
+
+    # delete parquet files
+    with os.scandir(data_folder) as entries:
+        for entry in entries:
+            if entry.is_file() and entry.name.endswith('.parquet'):
+                try:
+                    os.remove(entry.path)
+                    print(f"Deleted: {entry.name}")
+                except OSError as e:
+                    print(f"Error deleting {entry.name}: {e}")
+
+
 def parquets_exists(data_folder: str):
     """
     Return True if Parquet files are created and in data folder,
@@ -20,6 +43,9 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     """
     Efficiently convert CSV data to a parquet file
     """
+
+    # delete pre-existing parquet files in data folder
+    delete_existing_parquets(data_folder)
 
     # find source CSV files to operate on
     files: list[str] = os.listdir(data_folder)

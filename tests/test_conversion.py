@@ -49,7 +49,7 @@ def test_convert_to_parquet():
     """Tests the convert_to_parquet function and checks if the data from the sample .csv files properly converts into .parquet files"""
 
     # run the conversion function on our sample data
-    conversion.convert_to_parquet("tests/samples/")
+    conversion.convert_to_parquet("tests/conversion_samples/")
 
     # should create parquet files, so parquets_exists should return True
-    assert conversion.parquets_exists("tests/samples/")
+    assert conversion.parquets_exists("tests/conversion_samples/")

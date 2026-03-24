@@ -10,15 +10,15 @@ from app.services import conversion
 def test_empty_parquets_exists():
     """Tests the parquets_exists function when the empty_samples folder is empty"""
 
-    # checks if .keep exists. if it does, remove it real quick for the test. yes, i know this is bad
-    if os.path.exists("tests/empty_samples/.keep"):
-        os.remove("tests/empty_samples/.keep")
+    # checks if .tmp exists. if it does, remove it real quick for the test
+    if os.path.exists("tests/empty_samples/.tmp"):
+        os.remove("tests/empty_samples/.tmp")
 
     # should return False since no files exist within the empty_samples folder
     assert not conversion.parquets_exists("tests/empty_samples/")
 
-    # readd the .keep file so the folder doesn't get deleted by git. this is dumb but it works for now
-    with open("tests/empty_samples/.keep", "w") as f:
+    # re-add the .tmp file so the folder doesn't get deleted by git
+    with open("tests/empty_samples/.tmp", "w") as f:
         f.write("")
 
 

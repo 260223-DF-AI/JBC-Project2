@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
 import os
+import sys
 
 log_str_to_obj: dict = {
     "INFO": logging.INFO,
@@ -33,12 +34,14 @@ def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     formatter = logging.Formatter(LOG_FORMAT)
 
-    # send logs to log file
-    logger.addHandler(logging.FileHandler(LOG_PATH))
+    # only configure handlers if they haven't already been
+    if not logger.handlers:
+        # send logs to log file
+        logger.addHandler(logging.FileHandler(LOG_PATH))
 
-    # also send logs to STDOUT
-    logger.addHandler(logging.StreamHandler())
-    logger.handlers[0].setFormatter(formatter)
+        # also send logs to STDOUT
+        logger.addHandler(logging.StreamHandler(stream=sys.stdout))
+        logger.handlers[0].setFormatter(formatter)
 
     return logger
 

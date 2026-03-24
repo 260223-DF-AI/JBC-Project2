@@ -161,10 +161,9 @@ def main():
 
 
 if __name__ == "__main__":
-    import pandas as pd
     from app.services.conversion import convert_to_parquet
 
-    # convert_to_parquet("temp/")
+    convert_to_parquet("data/")
 
     main()
 

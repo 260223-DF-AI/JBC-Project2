@@ -10,6 +10,7 @@ import crc32c
 import base64
 
 from google.cloud import storage
+# import google_crc32c as crc32c
 from google.cloud.exceptions import NotFound
 
 from app.services.audit import log_audit_entry, check_audit_log
@@ -33,7 +34,7 @@ def blob_check(blob, local_crc: str) -> bool:
     """
     try:
         blob.reload()
-        return blob.crc32 == local_crc
+        return blob.crc32c == local_crc
     except NotFound:
         return False
 
@@ -42,11 +43,11 @@ def upload_single_file(blob, file_path: str, local_crc: str, chunk_size_mb: int 
     """
     Upload a single file to GCS with retry logic, using chunked uploads to limit memory usage.
     """
-    chunk_size_bytes = chunk_size_mb * 1024 * 1024
-    blob.upload_from_filename(str(file_path), chunk_size=chunk_size_bytes, resumable=True)
+    blob.chunk_size = chunk_size_mb * 1024 * 1024
+    blob.upload_from_filename(str(file_path), checksum="crc32c")
     # Verify the upload
     blob.reload()
-    if blob.crc32 != local_crc:
+    if blob.crc32c != local_crc:
         raise ValueError(f"GCS hash does not match local after upload. File: {file_path}, Local: {local_crc}, GCS: {blob.crc32c}")
 
 def upload_parquet_files(
@@ -63,7 +64,7 @@ def upload_parquet_files(
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
-    now = datetime.now(datetime.timezone.utc)
+    now = datetime.now()
     partition = f"year={now.year}/month={now.month:02d}"
 
     parquet_files = list(Path(local_folder).glob("**/*.parquet"))
@@ -74,7 +75,7 @@ def upload_parquet_files(
         "batch_summary": {
             "total_files": len(parquet_files),
             "total_bytes": 0,
-            "start_time": now.isoformat()
+            "start_time": now
         }
     }
 
@@ -120,7 +121,7 @@ def upload_parquet_files(
             results["failed"].append({"name": file_name, "hash": local_crc, "error": str(e)})
     
     # Add end time and summary
-    results["batch_summary"]["end_time"] = datetime.utcnow().isoformat()
+    results["batch_summary"]["end_time"] = datetime.now().isoformat()
     results["batch_summary"]["uploaded_count"] = len(results["uploaded"])
     results["batch_summary"]["skipped_count"] = len(results["skipped"])
     results["batch_summary"]["failed_count"] = len(results["failed"])
@@ -134,7 +135,7 @@ def upload_parquet_files(
     
     # Audit log entry
     audit_entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(),
         "source_system": source_system,
         "table_name": table_name,
         "bucket_name": bucket_name,
@@ -154,7 +155,7 @@ def main():
     load_dotenv()
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
-    proceed = input("Proceed? ").lower()
+    proceed = input("Connected to GCP successfully. Proceed? ").lower()
     if proceed not in ["y", "yes"]:
         sys.exit()
 
@@ -163,9 +164,9 @@ if __name__ == "__main__":
     import pandas as pd
     from app.services.conversion import convert_to_parquet
 
-    convert_to_parquet("temp/")
+    # convert_to_parquet("temp/")
 
     main()
 
-    parquets_folder_path = "temp/"
+    parquets_folder_path = "data/"
     results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

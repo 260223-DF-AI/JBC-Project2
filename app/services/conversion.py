@@ -45,7 +45,7 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
                 # append or write to file depending on whether it already exists 
                 df.to_parquet(
                     file_path,
-                    engine='pyarrow',
+                    engine='fastparquet',
                     append=files_exist
                 )
 

@@ -34,6 +34,7 @@ tests/empty_samples/*
 tests/incorrect_samples/*
 tests/samples/*
 tests/conversion_samples/*
+logs
 logs/*
 
 # Carl's API

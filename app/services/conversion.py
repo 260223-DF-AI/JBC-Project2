@@ -3,7 +3,7 @@ import os
 import sys
 import logging
 
-from ..validate import validate_df
+from ..utils.validate import validate_df
 
 logger = logging.getLogger(__name__)
 

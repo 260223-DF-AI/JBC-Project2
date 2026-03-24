@@ -161,8 +161,11 @@ def main():
 
 if __name__ == "__main__":
     import pandas as pd
-    from app.services.conversion import something
+    from app.services.conversion import convert_to_parquet
+
+    convert_to_parquet("temp/")
 
     main()
-    parquets_folder_path = "" 
-    results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "stg_sales")
+
+    parquets_folder_path = "temp/"
+    results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

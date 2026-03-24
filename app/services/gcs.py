@@ -15,8 +15,9 @@ from google.cloud.exceptions import NotFound
 
 from app.services.audit import log_audit_entry, check_audit_log
 from app.services.retry import retry_with_backoff
+from ..utils.logger import get_logger, log_execution
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def compute_local_crc32c(file_path: str) -> str:
     """
@@ -50,6 +51,7 @@ def upload_single_file(blob, file_path: str, local_crc: str, chunk_size_mb: int 
     if blob.crc32c != local_crc:
         raise ValueError(f"GCS hash does not match local after upload. File: {file_path}, Local: {local_crc}, GCS: {blob.crc32c}")
 
+@log_execution
 def upload_parquet_files(
         bucket_name: str,
         local_folder: str,
@@ -64,8 +66,8 @@ def upload_parquet_files(
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
-    now = datetime.now()
-    partition = f"year={now.year}/month={now.month:02d}"
+    start_datetime = datetime.now()
+    partition = f"year={start_datetime.year}/month={start_datetime.month:02d}"
 
     parquet_files = list(Path(local_folder).glob("**/*.parquet"))
     results = {
@@ -75,7 +77,7 @@ def upload_parquet_files(
         "batch_summary": {
             "total_files": len(parquet_files),
             "total_bytes": 0,
-            "start_time": now
+            "start_time": start_datetime
         }
     }
 
@@ -121,7 +123,12 @@ def upload_parquet_files(
             results["failed"].append({"name": file_name, "hash": local_crc, "error": str(e)})
     
     # Add end time and summary
-    results["batch_summary"]["end_time"] = datetime.now().isoformat()
+    
+    end_datetime: datetime = datetime.now()
+    time_delta = end_datetime - start_datetime
+    logger.info(f"GCS Upload took {time_delta.total_seconds():.2f}s total.")
+
+    results["batch_summary"]["end_time"] = end_datetime.isoformat()
     results["batch_summary"]["uploaded_count"] = len(results["uploaded"])
     results["batch_summary"]["skipped_count"] = len(results["skipped"])
     results["batch_summary"]["failed_count"] = len(results["failed"])

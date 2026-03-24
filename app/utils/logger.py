@@ -10,29 +10,38 @@ log_str_to_obj: dict = {
     "CRITICAL": logging.CRITICAL
 }
 
-# Retrieve log path & format from config file, or use defaults
-log_path: str = "logs/log.log"
-log_format: str = "%(asctime)s | %(levelname)s | %(message)s"
-logging_level: int = logging.INFO
-
 # ensure logs folder exists
 os.makedirs("logs/", exist_ok=True)
 
-logging.basicConfig(
-    filename=log_path,
-    format=log_format,
-    filemode="w",
-    level=logging_level)
+# constant log configs
+LOG_PATH: str = "logs/log.log"
+LOG_FORMAT: str = "%(asctime)s | %(levelname)s | %(message)s"
+LOGGING_LEVEL: int = logging.INFO
 
-logger = logging.getLogger(__name__)
-formatter = logging.Formatter(log_format)
 
-# send logs to log file
-logger.addHandler(logging.FileHandler(log_path))
+def get_logger(name: str) -> logging.Logger:
+    """
+    Return a logger with proper configuration.
+    """
 
-# also send logs to STDOUT
-logger.addHandler(logging.StreamHandler())
-logger.handlers[0].setFormatter(formatter)
+    logging.basicConfig(
+        filename=LOG_PATH,
+        format=LOG_FORMAT,
+        filemode="w",
+        level=LOGGING_LEVEL)
+
+    logger = logging.getLogger(name)
+    formatter = logging.Formatter(LOG_FORMAT)
+
+    # send logs to log file
+    logger.addHandler(logging.FileHandler(LOG_PATH))
+
+    # also send logs to STDOUT
+    logger.addHandler(logging.StreamHandler())
+    logger.handlers[0].setFormatter(formatter)
+
+    return logger
+
 
 # pass logger to decorator
 def log_execution(func1):
@@ -40,6 +49,8 @@ def log_execution(func1):
     @wraps(func1)
     def wrapper(*args, **kwargs):
         "Decorator wrapper"
+        logger = get_logger(func1.__module__)
+
         logger.info(f"Running {func1.__name__}")
         result = func1(*args, **kwargs)
         logger.info(f"Finished {func1.__name__}")

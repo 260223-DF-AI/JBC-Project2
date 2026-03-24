@@ -45,18 +45,11 @@ def test_parquets_exists():
         assert conversion.parquets_exists("tests/samples/")
 
 
-# conversion.data_folder = "tests/csv_samples/"
+def test_convert_to_parquet():
+    """Tests the convert_to_parquet function and checks if the data from the sample .csv files properly converts into .parquet files"""
 
-# def test_convert_to_parquet():
-#     """Tests the convert_to_parquet function and checks if the data from the CSV files properly converts"""
+    # run the conversion function on our sample data
+    conversion.convert_to_parquet("tests/samples/")
 
-#     # run the conversion function on our sample data
-#     conversion.convert_to_parquet()
-
-#     # should create parquet files, so parquets_exists should return True
-#     assert conversion.parquets_exists()
-
-#     # remove the files we created so next test runs properly
-#     filelist = [f for f in os.listdir(conversion.data_folder) if f.endswith(".parquet")]
-#     for f in filelist:
-#         os.remove(os.path.join(conversion.data_folder, f))
+    # should create parquet files, so parquets_exists should return True
+    assert conversion.parquets_exists("tests/samples/")

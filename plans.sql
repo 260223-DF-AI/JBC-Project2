@@ -11,3 +11,23 @@ FROM `jbc-sales.jbc_sales_dataset.stg_sales`
 GROUP BY Date
 ORDER BY TotalDailyRevenue DESC
 LIMIT 10;
+
+-- find the top three products of each category
+WITH ProductSales AS (
+    SELECT 
+        Category, 
+        ProductName, 
+        Count(ProductName) AS TimesProductBought,
+        ROW_NUMBER() OVER(
+            PARTITION BY Category ORDER BY COUNT(ProductName) DESC) as Rank
+    FROM `jbc-sales.jbc_sales_dataset.stg_sales`
+    GROUP BY Category, ProductName
+)
+
+SELECT 
+  Category, 
+  ProductName, 
+  TimesProductBought
+FROM ProductSales
+WHERE Rank <= 3
+ORDER BY Category, TimesProductBought DESC;

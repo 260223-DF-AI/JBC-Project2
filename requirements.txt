@@ -7,7 +7,9 @@ charset-normalizer==3.4.6
 click==8.3.1
 colorama==0.4.6
 cramjam==2.11.0
+crc32c==2.8
 cryptography==46.0.5
+dotenv==0.9.9
 fastapi==0.135.1
 fastparquet==2026.3.0
 fsspec==2026.2.0
@@ -30,6 +32,7 @@ pandas==3.0.1
 pluggy==1.6.0
 proto-plus==1.27.1
 protobuf==6.33.6
+pyarrow==23.0.1
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==3.0
@@ -38,6 +41,7 @@ pydantic_core==2.41.5
 Pygments==2.19.2
 pytest==9.0.2
 python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
 requests==2.32.5
 six==1.17.0
 starlette==0.52.1

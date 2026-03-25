@@ -81,6 +81,7 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
                 df.to_parquet(
                     file_path,
                     engine='fastparquet',
+                    index=False,
                     append=files_exist
                 )
         msg = f"Converted {csv} to parquet ({file_path})"

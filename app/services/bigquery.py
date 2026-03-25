@@ -4,8 +4,9 @@ from datetime import datetime
 import logging
 from google.cloud import storage
 import pandas as pd
+from app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def create_external_table(
         client: bigquery.Client = None,
@@ -20,10 +21,22 @@ def create_external_table(
     now = datetime.now()
     gcs_uri = f"gs://jbc-sales-bucket/jbc/stg_sales"
 
-    
     # Build the SQL for creating external table, hive partitioning refers to the year/month fodler structure
     sql = f"""
-CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}`
+CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}` (
+    TransactionID SERIAL PRIMARY KEY,
+    Date DATE,
+    StoreID VARCHAR(4),
+    ProductID VARCHAR(4),
+    Quantity INTEGER,
+    UnitPrice DECIMAL(6, 2),
+    DiscountPercent DECIMAL(5, 4),
+    TaxAmount DECIMAL(6, 2),
+    ShippingCost DECIMAL(6, 2),
+    TotalAmount(7, 2),
+    year SMALLINT,
+    month TINYINT,
+)
 WITH PARTITION COLUMNS
 OPTIONS (
   format = 'PARQUET',
@@ -70,11 +83,46 @@ def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFram
 
     return df
 
-def construct_query() -> str:
+def construct_query(
+        columns = "TransactionID", #str or list of strings
+        join_tables = None, #
+
+    ) -> str:
     """
-    Take in certain parameters and construct a predefined DQL statement to be sent to BigQuery
+    Take in certain parameters and construct a predefined DQL
+    statement to be sent to BigQuery.
+
+    Args:
+    columns (string or string list): columns to fetch, if fetching non-transaction table columns must specific table name in column
+    join_tables (tuple(str, str) or tuple list): tables to join, first item should be table name, second should be ids to join with transactions
+
+    Returns:
+    str: our full SQL statement to be sent to BigQuery
     """
+
+    cols = ""
+    if type(columns) == str:
+        cols = columns
+    elif type(columns) == list:
+        for i, c in enumerate(columns):
+            cols += c
+            if i != len(columns) - 1:
+                cols += ", "
+
+
+    joins = ""
+    if join_tables is not None:
+        for table, id in join_tables:
+            joins += f"JOIN {table} ON t.{id} = {table}.{id}\n"
+
+    sql = f"""
+SELECT {cols} FROM transactions as t
+{joins}
+
+"""
     
+
+    return sql
 
 # def get_dataset(project_id, dataset_id): # necessary?
 #     """

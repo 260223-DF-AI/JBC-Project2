@@ -66,27 +66,6 @@ def partition_external_table():  # Handle year/month partitions
     
     """
 
-def parameterized_query(
-        client: bigquery.Client = None,
-        sql: str = "",
-        params: list[bigquery.ScalarQueryParameter] = None):
-    """
-    Executes a parameterized query against BigQuery and
-    returns structured JSON payloads.
-    """
-    if client is None:
-        client = bigquery.Client(project=project_id)
-    job_config = bigquery.QueryJobConfig(query_parameters=params)
-    
-    try:
-        query_job = client.query(sql, job_config=job_config)
-        results = query_job.result()
-        payloads = [dict(row) for row in results]
-        return payloads
-    except Exception as e:
-        logger.error(f"Error executing parameterized query: {e}")
-        raise
-
 if __name__ == "__main__":
     connect()
     project_id = "jbc-sales"

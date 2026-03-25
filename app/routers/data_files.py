@@ -39,12 +39,25 @@ router = APIRouter(
 )
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def query_dates(date_range: str = ""):
+async def parameterized_query(params: list[bigquery.ScalarQueryParameter] = None):
     """
-    Queries through BigQuery with a parameterized date 
-    range and returns the structured JSON payloads.
+    Queries through BigQuery with given parameters.
+    Returns as structured JSON payloads.
 
     TODO: plan is to take a date range parameter, fetch through
           BigQuery with the set date range, and return payloads 
           as structured JSON to browser devices
     """
+    if params is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="No query parameters provided."
+                            )
+
+    try:
+        # payloads = parameterized_query(sql="", params=params)
+        pass
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Error executing query: {e}"
+                            )

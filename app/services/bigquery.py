@@ -60,11 +60,11 @@ def construct_external_tables():
     CustomerID STRING,
     ProductID STRING,
     Quantity INTEGER,
-    UnitPrice DECIMAL,
-    DiscountPercent DECIMAL,
-    TaxAmount DECIMAL,
-    ShippingCost DECIMAL,
-    TotalAmount DECIMAL,
+    UnitPrice FLOAT64,
+    DiscountPercent FLOAT64,
+    TaxAmount FLOAT64,
+    ShippingCost FLOAT64,
+    TotalAmount FLOAT64,
     year SMALLINT,
     month TINYINT,
 """}, {
@@ -104,14 +104,13 @@ def construct_external_tables():
     for table in tables:
         create_external_table(client, table=table["name"], constraints=table["constraints"])
 
-
 def construct_query(
         columns: str = "TransactionID",
-        join_tables: str = None,
-        where: str = "",
+        join_tables: tuple = None,
+        where: str = None,
         groups: str = None,
-        having: str = "",
-        order: str = None,
+        having: str = None,
+        order: tuple = None,
         limit: int = 100
     ) -> str:
     """
@@ -143,7 +142,12 @@ def construct_query(
     joins = ""
     if join_tables is not None:
         for table, id in join_tables:
-            joins += f"JOIN {table} ON transactions.{id} = {table}.{id}\n"
+            joins += f"JOIN jbc_sales_dataset.{table} as {table} ON transactions.{id} = {table}.{id}\n"
+
+    if where is not None:
+        where = f"WHERE {where}"
+    else:
+        where = ""
 
     group_by = "GROUP BY "
     if type(groups) == str:
@@ -151,20 +155,27 @@ def construct_query(
     elif type(groups) == list:
         for i, group in enumerate(groups):
             group_by += group
-            if i != len(group_by) - 1:
+            if i != len(groups) - 1:
                 group_by += ", "
+
+    if having is not None:
+        having = f"HAVING {having}"
+    else:
+        having = ""
 
     order_by = "ORDER BY "
     if type(order) == tuple:
-        order_by += f"{order[0]} {order[1]}"
+        asc = "ASC" if order[1] else "DESC"
+        order_by += f"{order[0]} {asc}"
     elif type(order) == list:
         for i, tup in enumerate(order):
-            order_by += f"{tup[0]} {tup[1]}"
-            if i != len(order):
+            asc = "ASC" if tup[1] else "DESC"
+            order_by += f"{tup[0]} {asc}"
+            if i != len(order) - 1:
                 order_by += ", "
 
     sql = f"""
-SELECT {cols} FROM transactions
+SELECT {cols} FROM jbc_sales_dataset.transactions as transactions
 {joins}
 {where}
 {group_by}
@@ -175,11 +186,14 @@ LIMIT {limit}
 
     return sql
 
-def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFrame:
+def query_bigquery(sql: str) -> pd.DataFrame:
     """
     Send SQL query to our BigQuery data warehouse, return DataFrame
     """
     df = pd.DataFrame()
+
+    project_id = "jbc-sales"
+    client = bigquery.Client(project=project_id)
 
     try:
         query_job = client.query(sql)
@@ -195,7 +209,6 @@ def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFram
 
 if __name__ == "__main__":
 
-    fetch_creds()
 
     # from app.services.conversion import convert_to_parquet
     # from app.services.gcs import upload_parquet_files
@@ -205,4 +218,23 @@ if __name__ == "__main__":
     # parquets_folder_path = "data/"
     # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
 
-    construct_external_tables()
+
+    sql = construct_query(
+        columns = "SUM(transactions.UnitPrice)",
+        join_tables = [("customers", "CustomerID")],
+        where = "transactions.UnitPrice >= 1000",
+        groups = ["transactions.CustomerID"],
+        having = None,
+        order = [("SUM(transactions.UnitPrice)", False)],
+        limit = 10
+    )
+    print(sql)
+
+    fetch_creds()
+
+    # construct_external_tables()
+
+    df = pd.DataFrame()
+    df = query_bigquery(sql)
+
+    print(df)

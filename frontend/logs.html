@@ -34,7 +34,26 @@
 
     <script>
         const API_BASE_URL = 'http://localhost:8000';
+        const logContent = document.getElementById('log-content');
         const logContainer = document.getElementById('log-content');
+
+        function formatLogLine(line) {
+            const upperLine = line.toUpperCase();
+            
+            if (upperLine.includes('CRITICAL')) {
+                return `<span class="text-white bg-red-900/50 px-1 rounded font-bold">${line}</span>`;
+            } else if (upperLine.includes('ERROR')) {
+                return `<span class="text-red-400 font-semibold">${line}</span>`;
+            } else if (upperLine.includes('WARNING')) {
+                return `<span class="text-yellow-400 font-semibold">${line}</span>`;
+            } else if (upperLine.includes('INFO')) {
+                return `<span class="text-blue-400">${line}</span>`;
+            } else if (upperLine.includes('DEBUG')) {
+                return `<span class="text-gray-500 italic">${line}</span>`;
+            }
+            
+            return line; // Default text color
+        }
 
         async function fetchLogs() {
             try {
@@ -42,8 +61,13 @@
                 const response = await fetch(`${API_BASE_URL}/logs`);
                 if (!response.ok) throw new Error('Could not fetch log file.');
                 
-                const text = await response.text();
-                logContainer.textContent = text;
+                const rawText = await response.text();
+                
+                // split by newlines, format each, then join back
+                const lines = rawText.split('\n');
+                const formattedContent = lines.map(line => formatLogLine(line)).join('\n');
+                
+                logContent.innerHTML = formattedContent;
                 
                 // auto-scroll to bottom
                 logContainer.scrollTop = logContainer.scrollHeight;

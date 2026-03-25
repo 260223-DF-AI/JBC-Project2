@@ -48,9 +48,15 @@ export async function queryData() {
     try {
         // Simulating a successful API call with placeholder data
         setTimeout(() => {
+
             const mockBigQueryData = [
-                { id: 201, threat_actor: "Ransomware Syndicate", target_system: "File Storage", reputational_risk: "Critical", mitigation_status: "Unmitigated" },
-                { id: 202, threat_actor: "Hacktivist Group", target_system: "Main Application", reputational_risk: "Medium", mitigation_status: "In Progress" }
+                { id: 5, StoreName: "big big store", total_sales: 500},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
+                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
             ];
             renderTable(mockBigQueryData);
             setStatus('Query success. Data loaded.', 'text-green-600');
@@ -62,7 +68,7 @@ export async function queryData() {
     }
 }
 
-// Function to dynamically build the table
+
 function renderTable(dataArray) {
     const tableHead = document.getElementById('table-head');
     const tableBody = document.getElementById('table-body');
@@ -75,7 +81,7 @@ function renderTable(dataArray) {
         return;
     }
 
-    // Create Headers
+    // create headers
     const headers = Object.keys(dataArray[0]);
     let headerRow = '<tr>';
     headers.forEach(header => {
@@ -85,23 +91,14 @@ function renderTable(dataArray) {
     headerRow += '</tr>';
     tableHead.innerHTML = headerRow;
 
-    // Create Rows
-    dataArray.forEach(rowItem => {
-        let row = '<tr class="hover:bg-gray-50 transition-colors">';
+    // create rows
+    dataArray.forEach((rowItem, i) => {
+        // every other row's background is different for readability
+        const bgColor = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+        let row = `<tr class="${bgColor} hover:bg-blue-50 transition-colors">`;
+        
         headers.forEach(header => {
             let cellData = rowItem[header];
-            
-            // Tailwind formatting logic for specific text
-            if (cellData === 'Critical') {
-                cellData = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">${cellData}</span>`;
-            } else if (cellData === 'High') {
-                cellData = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">${cellData}</span>`;
-            } else if (cellData === 'Medium') {
-                cellData = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">${cellData}</span>`;
-            } else if (cellData === 'Low') {
-                cellData = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${cellData}</span>`;
-            }
-            
             row += `<td class="px-6 py-4 text-gray-600 border-t border-gray-100">${cellData}</td>`;
         });
         row += '</tr>';

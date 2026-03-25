@@ -21,7 +21,8 @@ async def get_logs():
 
     log_path = "logs/log.log"
     if not os.path.exists(log_path):
-        return PlainTextResponse(content="Log file not found yet.",
+        logger.error("Log file not found")
+        return PlainTextResponse(content="Log file not found",
                                  status_code=status.HTTP_404_NOT_FOUND
                                  )
     

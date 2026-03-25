@@ -54,7 +54,7 @@ async def parameterized_query(params: list[bigquery.ScalarQueryParameter] = None
                             )
 
     try:
-        # payloads = parameterized_query(sql="", params=params)
+        # call the query from bigquery here
         pass
 
     except Exception as e:

@@ -66,7 +66,6 @@ def partition_external_table():  # Handle year/month partitions
     
     """
 
-
 if __name__ == "__main__":
     connect()
     project_id = "jbc-sales"

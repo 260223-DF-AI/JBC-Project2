@@ -1,7 +1,6 @@
 from google.cloud import bigquery
 from app.services.gcs import fetch_creds
 from datetime import datetime
-import logging
 from google.cloud import storage
 import pandas as pd
 from app.utils.logger import get_logger
@@ -55,49 +54,49 @@ def construct_external_tables():
     tables = [{
 "name": "transactions",
 "constraints": """
-    TransactionID SERIAL PRIMARY KEY,
+    TransactionID INT64,
     Date DATE,
-    StoreID VARCHAR(4),
-    CustomerID VARCHAR(4),
-    ProductID VARCHAR(4),
+    StoreID STRING,
+    CustomerID STRING,
+    ProductID STRING,
     Quantity INTEGER,
-    UnitPrice DECIMAL(6, 2),
-    DiscountPercent DECIMAL(5, 4),
-    TaxAmount DECIMAL(6, 2),
-    ShippingCost DECIMAL(6, 2),
-    TotalAmount(7, 2),
+    UnitPrice DECIMAL,
+    DiscountPercent DECIMAL,
+    TaxAmount DECIMAL,
+    ShippingCost DECIMAL,
+    TotalAmount DECIMAL,
     year SMALLINT,
     month TINYINT,
 """}, {
 "name": "customers",
 "constraints": """
-    CustomerID VARCHAR(4) PRIMARY KEY,
-    CustomerName VARCHAR(64),
-    Segment VARCHAR(11),
+    CustomerID STRING,
+    CustomerName STRING,
+    Segment STRING,
     year SMALLINT,
     month TINYINT
 """}, {
 "name": "products",
 "constraints": """
-    ProductID VARCHAR(4) PRIMARY KEY,
-    ProductName VARCHAR(32),
-    Category VARCHAR(15),
-    SubCategory VARCHAR(10),
+    ProductID STRING,
+    ProductName STRING,
+    Category STRING,
+    SubCategory STRING,
     year SMALLINT,
     month TINYINT
 """}, {
 "name": "stores",
 "constraints": """
-    StoreID VARCHAR(4) PRIMARY KEY,
-    StoreLocation VARCHAR(24),
-    Region VARCHAR(7),
-    State VARCHAR(2),
+    StoreID STRING,
+    StoreLocation STRING,
+    Region STRING,
+    State STRING,
     year SMALLINT,
     month TINYINT
 """}, {
 "name": "dates",
 "constraints": """
-    Date DATE PRIMARY KEY,
+    Date DATE,
     year SMALLINT,
     month TINYINT
 """}]

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import data_files, logs
-from .utils.logger import get_logger
+from .utils.logger import get_logger, log_execution
 
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ async def shutdown_event():
     """Clean up resources on shutdown"""
     logger.info("Shutting down JBC Sales Data API")
 
-
+@log_execution
 @app.get("/")
 def get_root():
     return {"message": "Hello from main"}

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import data_files
+from .routers import data_files, logs
 from .utils.logger import get_logger
 
 
@@ -40,7 +40,9 @@ def get_root():
     return {"message": "Hello from main"}
 
 # add router endpoints to app!
-app.include_router(data_files.router)
+app.include_router(data_files.convertRouter)
+app.include_router(data_files.queryRouter)
+app.include_router(logs.router)
 
 
 def start_server():

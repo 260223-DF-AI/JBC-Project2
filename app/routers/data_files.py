@@ -2,14 +2,13 @@ from fastapi import FastAPI, APIRouter, HTTPException, status
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
-from ..services.bigquery import parameterized_query
 
-router = APIRouter(
+convertRouter = APIRouter(
     prefix="/convert",
     tags=["convert"]
 )
 
-@router.post("/", status_code=status.HTTP_200_OK)
+@convertRouter.post("/", status_code=status.HTTP_200_OK)
 async def convert_csvs(data_folder: str = ""):
     """
     Initializes the CSV to Parquet conversion process,
@@ -30,16 +29,18 @@ async def convert_csvs(data_folder: str = ""):
 
     else:
         # call function to pass files to GCS here
-        pass
+        return {
+            "files": generated_file_paths
+        }
 
 
-router = APIRouter(
+queryRouter = APIRouter(
     prefix="/query",
     tags=["query"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-async def parameterized_query(params: list[bigquery.ScalarQueryParameter] = None):
+@queryRouter.get("/", status_code=status.HTTP_200_OK)
+async def parameterized_query(params = None):
     """
     Returns parameterized queries made through BigQuery
     as structured JSON payloads.

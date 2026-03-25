@@ -1,7 +1,7 @@
 import pandas as pd
-from .logger import log_execution, logger
+from .logger import get_logger, log_execution
 
-@log_execution
+
 def validate_df(df: pd.DataFrame) -> pd.DataFrame:
     """
     Validates and returns given dataframe.

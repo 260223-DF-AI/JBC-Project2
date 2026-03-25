@@ -40,7 +40,8 @@ def get_root():
     return {"message": "Hello from main"}
 
 # add router endpoints to app!
-app.include_router(data_files.router)
+app.include_router(data_files.convertRouter)
+app.include_router(data_files.queryRouter)
 app.include_router(logs.router)
 
 

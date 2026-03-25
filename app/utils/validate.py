@@ -25,5 +25,5 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d", errors="coerce")
 
-    logger.info("Dataframe successfully validated")
+    # logger.info("Dataframe successfully validated")
     return df

@@ -1,31 +1,35 @@
 from google.cloud import bigquery
 from app.services.gcs import connect
+from datetime import datetime
+import logging
+from google.cloud import storage
 
+logger = logging.getLogger(__name__)
 
 def create_external_table(
         client: bigquery.Client = None,
-        project_id: str = "jbc-sales",
-        dataset_id: str = "jbc_sales_dataset",
-        table_name: str = "stg_sales",
-        gcs_uri: str = "gs://jbc-sales-bucket/jbc/stg_sales",
+        table: str = "transactions",
         schema: str = ""):
     """
     Create external table in BigQuery referencing our DataLake layer in GCS
     """
-
     if client is None:
         client = bigquery.Client(project=project_id)
+
+    now = datetime.now()
+    gcs_uri = f"gs://jbc-sales-bucket/jbc/stg_sales"
+
     
-    # Build the SQL for creating external table
+    # Build the SQL for creating external table, hive partitioning refers to the year/month fodler structure
     sql = f"""
-CREATE OR REPLACE EXTERNAL TABLE `{project_id}.{dataset_id}.{table_name}`
+CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}`
 WITH PARTITION COLUMNS
 OPTIONS (
   format = 'PARQUET',
-  uris = ['{gcs_uri}/*'],
+  uris = ['{gcs_uri}/year={now.year}/month={now.strftime('%m')}/{table}.parquet'],
   hive_partition_uri_prefix = '{gcs_uri}'
 """
-    
+
     if schema:
         sql += f",\n  schema = '{schema}'"
     
@@ -34,10 +38,13 @@ OPTIONS (
     try:
         query_job = client.query(sql)
         query_job.result()  # Wait for the query to complete
-        print(f"External table {project_id}.{dataset_id}.{table_name} created successfully.")
+        msg = f"External table {table} created successfully."
+        print(msg)
+        logger.info(msg)
     except Exception as e:
-        print(f"Error creating external table: {e}")
-        raise
+        msg = f"Error creating external table {table}: {e}"
+        print(msg)
+        logger.error(msg)
 
 def update_external_table():
     """
@@ -64,6 +71,9 @@ if __name__ == "__main__":
     connect()
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
-    create_external_table(client)
 
+    tables = ["transactions", "customers", "products", "stores", "dates"]
+
+    for table in tables:
+        create_external_table(client, table=table)
     

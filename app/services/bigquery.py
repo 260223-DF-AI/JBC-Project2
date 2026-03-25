@@ -24,11 +24,14 @@ def create_external_table(
 CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}` (
 {constraints}
 )
-WITH PARTITION COLUMNS
+WITH PARTITION COLUMNS (
+    year SMALLINT,
+    month TINYINT
+)
 OPTIONS (
-  format = 'PARQUET',
-  uris = ['{gcs_uri}/year={now.year}/month={now.strftime('%m')}/{table}.parquet'],
-  hive_partition_uri_prefix = '{gcs_uri}'
+    format = 'PARQUET',
+    uris = ['{gcs_uri}/*/{table}.parquet'],
+    hive_partition_uri_prefix = '{gcs_uri}'
 );
 """
     

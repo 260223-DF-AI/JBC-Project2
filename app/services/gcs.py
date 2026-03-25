@@ -179,4 +179,4 @@ if __name__ == "__main__":
     fetch_creds()
 
     parquets_folder_path = "data/"
-    results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
+    # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

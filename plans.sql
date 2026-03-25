@@ -31,3 +31,19 @@ SELECT
 FROM ProductSales
 WHERE Rank <= 3
 ORDER BY Category, TimesProductBought DESC;
+
+-- lowest performing stores
+SELECT
+    StoreID,
+    SUM(TotalAmount) as TotalSales
+FROM `jbc-sales.jbc_sales_dataset.stg_sales`
+GROUP BY StoreID
+ORDER BY TotalSales ASC;
+
+-- find how much money in discounts each store has given
+SELECT
+    StoreID,
+    SUM(UnitPrice * Quantity * DiscountPercent) AS TotalMoneyDiscounted
+FROM `jbc-sales.jbc_sales_dataset.stg_sales`
+GROUP BY StoreID
+ORDER BY TotalMoneyDiscounted DESC;

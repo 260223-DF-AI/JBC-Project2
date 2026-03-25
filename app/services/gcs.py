@@ -66,10 +66,11 @@ def upload_parquet_files(
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
+    local_path = Path(local_folder)
     start_datetime = datetime.now()
-    partition = f"year={start_datetime.year}/month={start_datetime.month:02d}"
+    # partition = "hive_partitioned"
 
-    parquet_files = list(Path(local_folder).glob("**/*.parquet"))
+    parquet_files = list(local_path.glob("**/*.parquet"))
     results = {
         "uploaded": [],
         "skipped": [],
@@ -103,7 +104,11 @@ def upload_parquet_files(
                 continue
             
             # Construct GCS blob path
-            blob_name = f"{source_system}/{table_name}/{partition}/{file_name}"
+            relative_path = file_path.relative_to(local_path)
+            partition_parts = [p for p in relative_path.parts[:-1]]  # exclude the filename
+            partition = "/".join(partition_parts) if partition_parts else "none"
+
+            blob_name = f"{source_system}/{relative_path.as_posix()}"
             blob = bucket.blob(blob_name)
             
             # If blob already uploaded to bucket and has matching hash, skip this file since the GCS copy is the same, don't need to reupload
@@ -116,6 +121,16 @@ def upload_parquet_files(
             logger.info(f"Uploading {file_name} to {blob_name}")
             upload_single_file(blob, file_path, local_crc, chunk_size_mb)
             results["uploaded"].append({"name": file_path.name, "hash": local_crc})
+
+            log_audit_entry("audit_log.json", {
+                    "timestamp": datetime.now().isoformat(),
+                    "source_system": source_system,
+                    "table_name": table_name,
+                    "partition": partition,
+                    "file_name": file_path.name,
+                    "hash": local_crc,
+                    "blob_name": blob_name
+                })
 
         except Exception as e:
             # Unexpected error (e.g., can't compute CRC32C, upload failed)
@@ -139,7 +154,7 @@ def upload_parquet_files(
         f"Skipped={results['batch_summary']['skipped_count']}, "
         f"Failed={results['batch_summary']['failed_count']}"
     )
-    
+    """
     # Audit log entry
     audit_entry = {
         "timestamp": datetime.now(),
@@ -152,7 +167,8 @@ def upload_parquet_files(
         "failed_files": results["failed"],
         "batch_summary": results["batch_summary"]
     }
-    log_audit_entry("audit_log.json", audit_entry)
+    """
+    # log_audit_entry("audit_log.json", audit_entry)
     
     return results
 
@@ -174,9 +190,9 @@ def fetch_creds():
 if __name__ == "__main__":
     from app.services.conversion import convert_to_parquet
 
-    convert_to_parquet("data/")
+    # convert_to_parquet("data/")
 
     fetch_creds()
 
     parquets_folder_path = "data/"
-    # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
+    results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "sales")

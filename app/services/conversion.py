@@ -58,7 +58,7 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     csvs: list[str] = [(data_folder + file) for file in files if file.endswith("csv")]
 
     # columns to keep for each table
-    table_columns: dict[str, str] = {
+    table_columns: dict[str, list[str]] = {
         "transactions": ["TransactionID", "Date", "StoreID", "CustomerID", "ProductID", "Quantity", "UnitPrice", "DiscountPercent", "TaxAmount", "ShippingCost", "TotalAmount"],
         "stores": ["StoreID", "StoreLocation", "Region", "State"],
         "dates": ["Date"],
@@ -72,21 +72,20 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
         files_exist: bool = parquets_exists(data_folder)
 
         for chunk in csv_chunks:
-            for table_name, columns in table_columns.items():
-                df = chunk.filter(items=columns, axis=1)
-                file_path: str = f"{data_folder}{table_name}"
 
-                df = validate_df(df)
-                partition_cols = ["year", "month"]
-                
-                # append or write to file depending on whether it already exists 
-                df.to_parquet(
-                    file_path,
-                    engine='fastparquet',
-                    index=False,
-                    partition_cols=partition_cols,
-                    append=files_exist
-                )
+            file_path: str = f"{data_folder}sales"
+            
+            df = validate_df(chunk)
+            partition_cols = ["year", "month"]
+            
+            # append or write to file depending on whether it already exists 
+            df.to_parquet(
+                file_path,
+                engine='fastparquet',
+                index=False,
+                partition_cols=partition_cols,
+                append=files_exist
+            )
         msg = f"Converted {csv} to parquet ({file_path})"
         logger.info(msg)
 

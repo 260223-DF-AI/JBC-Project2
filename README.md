@@ -9,3 +9,6 @@ This project demonstrates the ability to:
 From the top level folder, run
 `py -m app`
 to start the FastAPI server.
+
+To view the webapp properly, host `index.html` on a server.
+(Consider using VSCode extension `Live Server` for ease)

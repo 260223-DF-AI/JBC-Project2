@@ -185,6 +185,8 @@ def query_bigquery(sql: str) -> pd.DataFrame:
     """
     df = pd.DataFrame()
 
+if __name__ == "__main__":
+    connect()
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
 

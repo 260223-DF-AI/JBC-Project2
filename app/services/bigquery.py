@@ -106,17 +106,26 @@ def construct_external_tables():
 
 
 def construct_query(
-        columns = "TransactionID", #str or list of strings
-        join_tables = None, #
-
+        columns: str = "TransactionID",
+        join_tables: str = None,
+        where: str = "",
+        groups: str = None,
+        having: str = "",
+        order: str = None,
+        limit: int = 100
     ) -> str:
     """
     Take in certain parameters and construct a predefined DQL
     statement to be sent to BigQuery.
 
     Args:
-    columns (string or string list): columns to fetch, if fetching non-transaction table columns must specific table name in column
+    columns (str or list(str)): columns to fetch, if fetching non-transaction table columns must specific table name in column
     join_tables (tuple(str, str) or tuple list): tables to join, first item should be table name, second should be ids to join with transactions
+    where (str): constraint ("col1 > 10"), will be appended to "WHERE"
+    groups (str or list(str)): columns to group by, need to specify tablename 
+    having
+    order (tuple(str, bool) or list(tuple)): tuples of columns to use in ordering and whether to use ASC (True) or DESC (False). Must include bool for every entry
+    limit (int): Default 100, limit number of entries returned.
 
     Returns:
     str: our full SQL statement to be sent to BigQuery
@@ -126,23 +135,43 @@ def construct_query(
     if type(columns) == str:
         cols = columns
     elif type(columns) == list:
-        for i, c in enumerate(columns):
-            cols += c
+        for i, col in enumerate(columns):
+            cols += col
             if i != len(columns) - 1:
                 cols += ", "
-
 
     joins = ""
     if join_tables is not None:
         for table, id in join_tables:
-            joins += f"JOIN {table} ON t.{id} = {table}.{id}\n"
+            joins += f"JOIN {table} ON transactions.{id} = {table}.{id}\n"
+
+    group_by = "GROUP BY "
+    if type(groups) == str:
+        group_by += groups
+    elif type(groups) == list:
+        for i, group in enumerate(groups):
+            group_by += group
+            if i != len(group_by) - 1:
+                group_by += ", "
+
+    order_by = "ORDER BY "
+    if type(order) == tuple:
+        order_by += f"{order[0]} {order[1]}"
+    elif type(order) == list:
+        for i, tup in enumerate(order):
+            order_by += f"{tup[0]} {tup[1]}"
+            if i != len(order):
+                order_by += ", "
 
     sql = f"""
-SELECT {cols} FROM transactions as t
+SELECT {cols} FROM transactions
 {joins}
-
+{where}
+{group_by}
+{having}
+{order_by}
+LIMIT {limit}
 """
-    
 
     return sql
 
@@ -166,12 +195,12 @@ def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFram
 
 if __name__ == "__main__":
 
+    fetch_creds()
+
     # from app.services.conversion import convert_to_parquet
     # from app.services.gcs import upload_parquet_files
 
     # convert_to_parquet("data/")
-
-    fetch_creds()
 
     # parquets_folder_path = "data/"
     # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

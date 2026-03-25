@@ -24,6 +24,16 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d", errors="coerce")
+        df["year"] = df["Date"].dt.year
+        df["month"] = df["Date"].dt.month
+    else:
+        df["year"] = 2026
+        df["month"] = 3
+
+    df["year"] = df["year"].astype("int64")
+    df["month"] = df["month"].astype("int64")
+    # df["year"] = pd.DatetimeIndex(df["Date"]).year
+    # df["month"] = pd.DatetimeIndex(df["Date"]).month
 
     # logger.info("Dataframe successfully validated")
     return df

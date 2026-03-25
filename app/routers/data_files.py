@@ -30,6 +30,8 @@ async def convert_csvs(data_folder: str = ""):
 
     else:
         # call function to pass files to GCS here
-        pass
+        return {
+            "files": generated_file_paths
+        }
 
 

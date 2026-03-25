@@ -8,28 +8,43 @@ This file is responsible for interacting with the Python FastAPI server 4
 const API_BASE_URL = 'http://localhost:8000';
 const statusEl = document.getElementById('status-message');
 
+function setStatus(message, colorClass) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove('text-blue-600', 'text-green-600', 'text-red-600');
+    if (colorClass) statusEl.classList.add(colorClass);
+}
+
 // POST - /convert
 export async function convertData() {
-    statusEl.innerHTML = '<span class="text-blue-600">Sending /convert request...</span>';
+    setStatus('Sending /convert request...', 'text-blue-600');
     try {
-        const response = await fetch(`${API_BASE_URL}/convert?data_folder=data/`, {
+        const response = await fetch(`${API_BASE_URL}/convert/?data_folder=data/`, {
             method: 'POST',
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' },
+            redirect: 'follow'
         });
         
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
-        const result = await response.json();
-        statusEl.innerHTML = `<span class="text-green-600">Convert success: ${JSON.stringify(result)}</span>`;
+        let result = null;
+        try {
+            result = await response.json();
+        } catch (jsonErr) {
+            console.warn('No JSON payload from convert endpoint', jsonErr);
+        }
+
+        const payload = result ? JSON.stringify(result) : 'No response body';
+        setStatus(`Convert success: ${payload}`, 'text-green-600');
     } catch (error) {
         console.error('Convert Error:', error);
-        statusEl.innerHTML = `<span class="text-red-600">Failed to reach API. Ensure FastAPI is running on localhost:8000.</span>`;
+        setStatus('Failed to reach API. Ensure FastAPI is running on localhost:8000.', 'text-red-600');
     }
 }
 
 // GET - /query
 export async function queryData() {
-    statusEl.innerHTML = '<span class="text-blue-600">Sending /query request...</span>';
+    setStatus('Sending /query request...', 'text-blue-600');
     try {
         // Simulating a successful API call with placeholder data
         setTimeout(() => {
@@ -38,12 +53,12 @@ export async function queryData() {
                 { id: 202, threat_actor: "Hacktivist Group", target_system: "Main Application", reputational_risk: "Medium", mitigation_status: "In Progress" }
             ];
             renderTable(mockBigQueryData);
-            statusEl.innerHTML = '<span class="text-green-600">Query success. Data loaded.</span>';
+            setStatus('Query success. Data loaded.', 'text-green-600');
         }, 500); 
 
     } catch (error) {
         console.error('Query Error:', error);
-        statusEl.innerHTML = `<span class="text-red-600">Failed to fetch query.</span>`;
+        setStatus('Failed to fetch query.', 'text-red-600');
     }
 }
 

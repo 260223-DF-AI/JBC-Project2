@@ -157,15 +157,15 @@ def upload_parquet_files(
     return results
 
 
-def connect():
-    """Connect to our GCS Bucket"""
+def fetch_creds():
+    """Load credentials to connect to GCS/BigQuery"""
     load_dotenv()
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
 
     proceed = ""
     while True:
-        proceed = input("Connected to GCP successfully. Proceed? (y/n) ").lower()
+        proceed = input("Credentials loaded. Proceed with connection? (y/n) ").lower()
         if proceed in ["y", "yes"]:
             break
         elif proceed in ["n", "no"]:
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     convert_to_parquet("data/")
 
-    connect()
+    fetch_creds()
 
     parquets_folder_path = "data/"
     results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")

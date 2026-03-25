@@ -58,7 +58,7 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
 
     # columns to keep for each table
     table_columns: dict[str, str] = {
-        "transactions": ["TransactionID", "Date", "StoreID", "ProductID", "Quantity", "UnitPrice", "DiscountPercent", "TaxAmount", "ShippingCost", "TotalAmount"],
+        "transactions": ["TransactionID", "Date", "StoreID", "CustomerID", "ProductID", "Quantity", "UnitPrice", "DiscountPercent", "TaxAmount", "ShippingCost", "TotalAmount"],
         "stores": ["StoreID", "StoreLocation", "Region", "State"],
         "dates": ["Date"],
         "products": ["ProductID", "ProductName", "Category", "SubCategory"],

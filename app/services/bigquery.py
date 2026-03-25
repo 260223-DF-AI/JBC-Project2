@@ -1,5 +1,5 @@
 from google.cloud import bigquery
-from app.services.gcs import connect
+from app.services.gcs import fetch_creds
 from datetime import datetime
 import logging
 from google.cloud import storage
@@ -58,6 +58,7 @@ def construct_external_tables():
     TransactionID SERIAL PRIMARY KEY,
     Date DATE,
     StoreID VARCHAR(4),
+    CustomerID VARCHAR(4),
     ProductID VARCHAR(4),
     Quantity INTEGER,
     UnitPrice DECIMAL(6, 2),
@@ -70,15 +71,35 @@ def construct_external_tables():
 """}, {
 "name": "customers",
 "constraints": """
+    CustomerID VARCHAR(4) PRIMARY KEY,
+    CustomerName VARCHAR(64),
+    Segment VARCHAR(11),
+    year SMALLINT,
+    month TINYINT
 """}, {
 "name": "products",
 "constraints": """
+    ProductID VARCHAR(4) PRIMARY KEY,
+    ProductName VARCHAR(32),
+    Category VARCHAR(15),
+    SubCategory VARCHAR(10),
+    year SMALLINT,
+    month TINYINT
 """}, {
 "name": "stores",
 "constraints": """
+    StoreID VARCHAR(4) PRIMARY KEY,
+    StoreLocation VARCHAR(24),
+    Region VARCHAR(7),
+    State VARCHAR(2),
+    year SMALLINT,
+    month TINYINT
 """}, {
 "name": "dates",
 "constraints": """
+    Date DATE PRIMARY KEY,
+    year SMALLINT,
+    month TINYINT
 """}]
 
     for table in tables:
@@ -145,6 +166,15 @@ def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFram
     return df
 
 if __name__ == "__main__":
-    connect()
+
+    # from app.services.conversion import convert_to_parquet
+    # from app.services.gcs import upload_parquet_files
+
+    # convert_to_parquet("data/")
+
+    fetch_creds()
+
+    # parquets_folder_path = "data/"
+    # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
+
     construct_external_tables()
-    

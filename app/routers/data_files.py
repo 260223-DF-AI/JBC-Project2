@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException, status
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
+from ..utils.logger import get_logger
 
 convertRouter = APIRouter(
     prefix="/convert",
@@ -14,6 +15,9 @@ async def convert_csvs(data_folder: str = ""):
     Initializes the CSV to Parquet conversion process,
     sending the resulting files to GCS for analysis.
     """
+
+    logger = get_logger(__name__)
+    logger.info("Beginning convert_csvs endpoint execution")
 
     # a data folder needs to be supplied
     if data_folder == "":
@@ -49,6 +53,10 @@ async def parameterized_query(params = None):
           BigQuery with the set date range, and return payloads 
           as structured JSON to browser devices
     """
+
+    logger = get_logger(__name__)
+    logger.info("Beginning query endpoint execution")
+
     if params is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="No query parameters provided."

@@ -19,19 +19,19 @@ LOG_PATH: str = "logs/log.log"
 LOG_FORMAT: str = "%(asctime)s | %(levelname)s | %(message)s"
 LOGGING_LEVEL: int = logging.INFO
 
+logging.basicConfig(
+        filename=LOG_PATH,
+        format=LOG_FORMAT,
+        filemode="w",
+        level=LOGGING_LEVEL)
 
 def get_logger(name: str) -> logging.Logger:
     """
     Return a logger with proper configuration.
     """
 
-    logging.basicConfig(
-        filename=LOG_PATH,
-        format=LOG_FORMAT,
-        filemode="w",
-        level=LOGGING_LEVEL)
-
     logger = logging.getLogger(name)
+    logger.propagate = False
     formatter = logging.Formatter(LOG_FORMAT)
 
     # only configure handlers if they haven't already been
@@ -50,12 +50,13 @@ def get_logger(name: str) -> logging.Logger:
 def log_execution(func1):
     """Decorator function to log when a function starts & terminates"""
     @wraps(func1)
-    def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         "Decorator wrapper"
         logger = get_logger(func1.__module__)
 
         logger.info(f"Running {func1.__name__}")
-        result = func1(*args, **kwargs)
+        print("in logger but not logging")
+        result = await func1(*args, **kwargs)
         logger.info(f"Finished {func1.__name__}")
         return result
     return wrapper

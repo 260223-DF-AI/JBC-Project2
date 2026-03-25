@@ -9,14 +9,13 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 def create_external_table(
-        client: bigquery.Client = None,
-        table: str = "transactions",
-        schema: str = ""):
+        client: bigquery.Client,
+        table: str,
+        constraints: str
+    ):
     """
     Create external table in BigQuery referencing our DataLake layer in GCS
     """
-    if client is None:
-        client = bigquery.Client(project=project_id)
 
     now = datetime.now()
     gcs_uri = f"gs://jbc-sales-bucket/jbc/stg_sales"
@@ -24,30 +23,15 @@ def create_external_table(
     # Build the SQL for creating external table, hive partitioning refers to the year/month fodler structure
     sql = f"""
 CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}` (
-    TransactionID SERIAL PRIMARY KEY,
-    Date DATE,
-    StoreID VARCHAR(4),
-    ProductID VARCHAR(4),
-    Quantity INTEGER,
-    UnitPrice DECIMAL(6, 2),
-    DiscountPercent DECIMAL(5, 4),
-    TaxAmount DECIMAL(6, 2),
-    ShippingCost DECIMAL(6, 2),
-    TotalAmount(7, 2),
-    year SMALLINT,
-    month TINYINT,
+{constraints}
 )
 WITH PARTITION COLUMNS
 OPTIONS (
   format = 'PARQUET',
   uris = ['{gcs_uri}/year={now.year}/month={now.strftime('%m')}/{table}.parquet'],
   hive_partition_uri_prefix = '{gcs_uri}'
+);
 """
-
-    if schema:
-        sql += f",\n  schema = '{schema}'"
-    
-    sql += "\n);"
     
     try:
         query_job = client.query(sql)
@@ -60,28 +44,46 @@ OPTIONS (
         # print(msg)
         logger.error(msg)
 
-# def update_external_table(): # necessary?
-#     """
-    
-#     """
-
-def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFrame:
+def construct_external_tables():
     """
-    Send SQL query to our BigQuery data warehouse, return DataFrame
+    Create external tables in BigQuery for each parquet file in GCS
     """
-    df = pd.DataFrame()
 
-    try:
-        query_job = client.query(sql)
-        rows = query_job.result()
-        df = rows.to_dataframe()
-        msg = f"Query completed successfully"
-        logger.info(msg)
-    except Exception as e:
-        msg = f"Error with query: {e}"
-        logger.error(msg)
+    project_id = "jbc-sales"
+    client = bigquery.Client(project=project_id)
 
-    return df
+    tables = [{
+"name": "transactions",
+"constraints": """
+    TransactionID SERIAL PRIMARY KEY,
+    Date DATE,
+    StoreID VARCHAR(4),
+    ProductID VARCHAR(4),
+    Quantity INTEGER,
+    UnitPrice DECIMAL(6, 2),
+    DiscountPercent DECIMAL(5, 4),
+    TaxAmount DECIMAL(6, 2),
+    ShippingCost DECIMAL(6, 2),
+    TotalAmount(7, 2),
+    year SMALLINT,
+    month TINYINT,
+"""}, {
+"name": "customers",
+"constraints": """
+"""}, {
+"name": "products",
+"constraints": """
+"""}, {
+"name": "stores",
+"constraints": """
+"""}, {
+"name": "dates",
+"constraints": """
+"""}]
+
+    for table in tables:
+        create_external_table(client, table=table["name"], constraints=table["constraints"])
+
 
 def construct_query(
         columns = "TransactionID", #str or list of strings
@@ -124,24 +126,25 @@ SELECT {cols} FROM transactions as t
 
     return sql
 
-# def get_dataset(project_id, dataset_id): # necessary?
-#     """
-    
-#     """
+def query_bigquery(client: bigquery.Client, sql: str, project_id) -> pd.DataFrame:
+    """
+    Send SQL query to our BigQuery data warehouse, return DataFrame
+    """
+    df = pd.DataFrame()
 
-# def partition_external_table():  # Handle year/month partitions
-#     """
-    
-#     """
+    try:
+        query_job = client.query(sql)
+        rows = query_job.result()
+        df = rows.to_dataframe()
+        msg = f"Query completed successfully"
+        logger.info(msg)
+    except Exception as e:
+        msg = f"Error with query: {e}"
+        logger.error(msg)
 
+    return df
 
 if __name__ == "__main__":
     connect()
-    project_id = "jbc-sales"
-    client = bigquery.Client(project=project_id)
-
-    tables = ["transactions", "customers", "products", "stores", "dates"]
-
-    for table in tables:
-        create_external_table(client, table=table)
+    construct_external_tables()
     

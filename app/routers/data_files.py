@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, status
-
+from fastapi import FastAPI, APIRouter, HTTPException, status
+from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
+from ..services.bigquery import parameterized_query
 
 router = APIRouter(
     prefix="/convert",
     tags=["convert"]
 )
-
 
 @router.post("/", status_code=status.HTTP_200_OK)
 async def convert_csvs(data_folder: str = ""):
@@ -33,3 +33,18 @@ async def convert_csvs(data_folder: str = ""):
         pass
 
 
+router = APIRouter(
+    prefix="/query",
+    tags=["query"]
+)
+
+@router.get("/", status_code=status.HTTP_200_OK)
+async def query_dates(date_range: str = ""):
+    """
+    Queries through BigQuery with a parameterized date 
+    range and returns the structured JSON payloads.
+
+    TODO: plan is to take a date range parameter, fetch through
+          BigQuery with the set date range, and return payloads 
+          as structured JSON to browser devices
+    """

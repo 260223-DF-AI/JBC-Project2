@@ -1,18 +1,10 @@
-import logging
 from fastapi import FastAPI
 
-# Configure logging on startup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("app.log")
-    ]
-)
-
-logger = logging.getLogger(__name__)
 from .routers import data_files
+from utils.logger import get_logger
+
+
+logger = get_logger(__name__)
 
 app = FastAPI(
     title = "JBC API",

@@ -95,6 +95,3 @@ def create_test_fixtures():
         os.remove(parquet)
     for parquet in glob.glob("tests/samples/*.parquet"):
         os.remove(parquet)
-
-
-# Setup for test_requests.py

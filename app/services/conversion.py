@@ -86,7 +86,7 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
         msg = f"Converted {csv} to parquet ({file_path})"
         logger.info(msg)
 
-    parquet_file_paths: list[str] = [f"{data_folder}{table_name}" for table_name in table_columns.keys()]
+    parquet_file_paths: list[str] = [f"{data_folder}{table_name}.parquet" for table_name in table_columns.keys()]
     return parquet_file_paths
 
 

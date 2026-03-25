@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import data_files
-from utils.logger import get_logger
+from .utils.logger import get_logger
 
 
 logger = get_logger(__name__)
@@ -10,6 +11,15 @@ app = FastAPI(
     title = "JBC API",
     description = "API for Sales Data"
     )
+
+# ensure browser can access our api
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # would be replaced with web url if hosted publicly 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")

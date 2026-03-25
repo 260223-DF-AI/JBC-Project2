@@ -9,28 +9,26 @@ logger = get_logger(__name__)
 
 def create_external_table(
         client: bigquery.Client,
-        table: str,
-        constraints: str
+        table: str
+        # constraints: str
     ):
     """
     Create external table in BigQuery referencing our DataLake layer in GCS
     """
 
     now = datetime.now()
-    gcs_uri = f"gs://jbc-sales-bucket/jbc/stg_sales"
+    gcs_uri = f"gs://jbc-sales-bucket/jbc/sales"
 
     # Build the SQL for creating external table, hive partitioning refers to the year/month fodler structure
     sql = f"""
-CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}` (
-{constraints}
-)
+CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}`
 WITH PARTITION COLUMNS (
-    year SMALLINT,
-    month TINYINT
+    year STRING,
+    month STRING
 )
 OPTIONS (
     format = 'PARQUET',
-    uris = ['{gcs_uri}/*/{table}.parquet'],
+    uris = ['{gcs_uri}/*'],
     hive_partition_uri_prefix = '{gcs_uri}'
 );
 """
@@ -54,8 +52,7 @@ def construct_external_tables():
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
 
-    tables = [{
-"name": "transactions",
+    tables = [{"name": "transactions",
 "constraints": """
     TransactionID INT64,
     Date DATE,
@@ -70,39 +67,32 @@ def construct_external_tables():
     TotalAmount FLOAT64,
     year SMALLINT,
     month TINYINT,
-"""}, {
-"name": "customers",
-"constraints": """
+
     CustomerID STRING,
     CustomerName STRING,
     Segment STRING,
     year SMALLINT,
     month TINYINT
-"""}, {
-"name": "products",
-"constraints": """
+
     ProductID STRING,
     ProductName STRING,
     Category STRING,
     SubCategory STRING,
     year SMALLINT,
     month TINYINT
-"""}, {
-"name": "stores",
-"constraints": """
+
     StoreID STRING,
     StoreLocation STRING,
     Region STRING,
     State STRING,
     year SMALLINT,
     month TINYINT
-"""}, {
-"name": "dates",
-"constraints": """
+
     Date DATE,
     year SMALLINT,
     month TINYINT
-"""}]
+"""
+}]
 
     for table in tables:
         create_external_table(client, table=table["name"], constraints=table["constraints"])
@@ -145,7 +135,7 @@ def construct_query(
     joins = ""
     if join_tables is not None:
         for table, id in join_tables:
-            joins += f"JOIN jbc_sales_dataset.{table} as {table} ON transactions.{id} = {table}.{id}\n"
+            joins += f"JOIN jbc_sales_dataset.{table} as {table} ON sales.{id} = {table}.{id}\n"
 
     if where is not None:
         where = f"WHERE {where}"
@@ -178,7 +168,7 @@ def construct_query(
                 order_by += ", "
 
     sql = f"""
-SELECT {cols} FROM jbc_sales_dataset.transactions as transactions
+SELECT {cols} FROM jbc_sales_dataset.sales as sales
 {joins}
 {where}
 {group_by}
@@ -218,24 +208,25 @@ if __name__ == "__main__":
 
     # convert_to_parquet("data/")
 
-    # parquets_folder_path = "data/"
+    parquets_folder_path = "data/"
     # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
 
 
     sql = construct_query(
-        columns = "SUM(transactions.UnitPrice)",
-        join_tables = [("customers", "CustomerID")],
-        where = "transactions.UnitPrice >= 1000",
-        groups = ["transactions.CustomerID"],
+        columns = "SUM(UnitPrice)",
+        where = "UnitPrice >= 1000",
+        groups = ["CustomerID"],
         having = None,
-        order = [("SUM(transactions.UnitPrice)", False)],
+        order = [("SUM(UnitPrice)", False)],
         limit = 10
     )
     print(sql)
-
     fetch_creds()
 
+
     # construct_external_tables()
+    # client = bigquery.Client(project="jbc-sales")
+    # create_external_table(client, "sales")
 
     df = pd.DataFrame()
     df = query_bigquery(sql)

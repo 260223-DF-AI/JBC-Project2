@@ -29,6 +29,9 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["year"] = 2026
         df["month"] = 3
+
+    df["year"] = df["year"].astype("int64")
+    df["month"] = df["month"].astype("int64")
     # df["year"] = pd.DatetimeIndex(df["Date"]).year
     # df["month"] = pd.DatetimeIndex(df["Date"]).month
 

@@ -38,7 +38,7 @@
                         </button>
                     </div>
                     <div id="parametersContainer" class="flex flex-col gap-3">
-                        <!-- Dynamic parameter textboxes will be inserted here -->
+                        <!-- dynamically insert requests here -->
                     </div>
                 </div>
                 <div id="status-message" class="mt-4 text-sm font-medium h-5"></div>
@@ -49,42 +49,10 @@
             <div class="max-h-[600px] overflow-y-auto">
                 <table class="min-w-full text-left text-sm whitespace-nowrap">
                     <thead class="sticky top-0 bg-gray-50 border-b border-gray-200" id="table-head">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 font-semibold text-gray-900">ID</th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-gray-900">Threat Actor</th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-gray-900">Target System</th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-gray-900">Reputational Risk</th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-gray-900">Mitigation Status</th>
-                        </tr>
+                        
                     </thead>
                     <tbody class="divide-y divide-gray-200" id="table-body">
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-gray-900">101</td>
-                            <td class="px-6 py-4 text-gray-600">Advanced Persistent Threat (APT-29)</td>
-                            <td class="px-6 py-4 text-gray-600">Authentication Server</td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Critical</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">In Progress</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-gray-900">102</td>
-                            <td class="px-6 py-4 text-gray-600">Insider Threat</td>
-                            <td class="px-6 py-4 text-gray-600">Customer Database</td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">High</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Review Pending</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-gray-900">103</td>
-                            <td class="px-6 py-4 text-gray-600">Script Kiddie</td>
-                            <td class="px-6 py-4 text-gray-600">Public Facing Website</td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Low</span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">Mitigated</td>
-                        </tr>
+                        <!-- dynamically build table here -->
                     </tbody>
                 </table>
             </div>

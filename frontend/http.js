@@ -1,7 +1,7 @@
 /* 
 
-This file is responsible for interacting with the Python FastAPI server 4
-& displaying the retrieved data
+This file is responsible for interacting with the 
+FastAPI server & displaying the retrieved data
 
 */
 

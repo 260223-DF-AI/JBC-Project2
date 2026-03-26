@@ -1,7 +1,6 @@
 import logging
 from functools import wraps
 import os
-import sys
 
 log_str_to_obj: dict = {
     "INFO": logging.INFO,
@@ -17,6 +16,7 @@ os.makedirs("logs/", exist_ok=True)
 # constant log configs
 LOG_PATH: str = "logs/log.log"
 LOG_FORMAT: str = "%(asctime)s | %(levelname)s | %(message)s"
+DATE_FORMAT: str = '%Y-%m-%d %H:%M:%S'
 LOGGING_LEVEL: int = logging.INFO
 
 logging.basicConfig(
@@ -32,15 +32,12 @@ def get_logger(name: str) -> logging.Logger:
 
     logger = logging.getLogger(name)
     logger.propagate = False
-    formatter = logging.Formatter(LOG_FORMAT)
+    formatter = logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)
 
     # only configure handlers if they haven't already been
     if not logger.handlers:
         # send logs to log file
         logger.addHandler(logging.FileHandler(LOG_PATH))
-
-        # also send logs to STDOUT
-        logger.addHandler(logging.StreamHandler(stream=sys.stdout))
         logger.handlers[0].setFormatter(formatter)
 
     return logger

@@ -112,7 +112,7 @@ async def discount_analysis(limit: int = 5, order_by: str = "DESC"):
     return query_bigquery(query, job_config)
 
 @queryRouter.get("/max_revenue_days", status_code=status.HTTP_200_OK)
-async def max_revenue_days(limit: int, order_by: str = "DESC"):
+async def max_revenue_days(limit: int = 5, order_by: str = "DESC"):
     """
     Returns query results analyzing the days with the
     highest revenue.
@@ -141,7 +141,7 @@ async def max_revenue_days(limit: int, order_by: str = "DESC"):
     return query_bigquery(query, job_config)
 
 @queryRouter.get("/top_products", status_code=status.HTTP_200_OK)
-async def top_products(rank: int, order_by: str = "DESC"):
+async def top_products(rank: int = 3, order_by: str = "DESC"):
     """
     Returns query results analyzing the top three
     products by revenue.
@@ -168,7 +168,8 @@ async def top_products(rank: int, order_by: str = "DESC"):
         SELECT 
         Category, 
         ProductName, 
-        TimesProductBought
+        TimesProductBought,
+        Rank
         FROM ProductSales
         WHERE Rank <= @rank
         ORDER BY TimesProductBought {order_by}, Category;
@@ -183,7 +184,7 @@ async def top_products(rank: int, order_by: str = "DESC"):
     return query_bigquery(query, job_config)
 
 @queryRouter.get("/worst_stores", status_code=status.HTTP_200_OK)
-async def worst_stores(limit: int, order_by: str = "ASC"):
+async def worst_stores(limit: int = 5, order_by: str = "ASC"):
     """
     Returns query results analyzing the stores with
     the lowest sales.

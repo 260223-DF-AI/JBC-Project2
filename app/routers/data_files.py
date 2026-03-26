@@ -31,8 +31,8 @@ async def convert_csvs(data_folder: str = ""):
     
     elif data_folder == "418":
         return FileResponse(
-            path="../misc/teapot.gif",
-            status_code=HTTPException(status_code=status.HTTP_418_IM_A_TEAPOT),
+            path="./misc/teapot.gif",
+            status_code=status.HTTP_418_IM_A_TEAPOT,
             media_type="gif",
             filename="teapot.gif"
             )

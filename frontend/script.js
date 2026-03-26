@@ -3,6 +3,44 @@ import {convertData} from './http.js';
 const header_caption = document.getElementById('header_caption')
 header_caption.innerText += " " + new Date().toLocaleDateString();
 
+function startFaviconRotation() {
+    const faviconLink = document.querySelector("link[rel*='icon']");
+    if (!faviconLink) return;
+
+    const sourceHref = faviconLink.getAttribute('href');
+    if (!sourceHref) return;
+
+    const sourceImage = new Image();
+    sourceImage.src = sourceHref;
+
+    sourceImage.onload = () => {
+        const size = 64;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let angle = 0;
+        const rotateStep = 8;
+        const frameDelayMs = 80;
+
+        setInterval(() => {
+            ctx.clearRect(0, 0, size, size);
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            ctx.rotate((angle * Math.PI) / 180);
+            ctx.drawImage(sourceImage, -size / 2, -size / 2, size, size);
+            ctx.restore();
+
+            faviconLink.href = canvas.toDataURL('image/png');
+            angle = (angle + rotateStep) % 360;
+        }, frameDelayMs);
+    };
+}
+
+startFaviconRotation();
+
 // Generic query handler factory
 function makeQueryHandler(endpoint) {
     return async function() {

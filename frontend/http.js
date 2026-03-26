@@ -36,8 +36,7 @@ export async function convertData() {
             if (imageContainer) {
                 imageContainer.innerHTML = `
                     <div class="mt-4 p-2 border border-gray-200 rounded-lg bg-gray-50">
-                        <p class="text-sm font-medium text-gray-700">Server returned 418: image returned from teapot</p>
-                        <img src="${imageUrl}" alt="418 response" class="mt-2 max-h-96 w-auto object-contain" />
+                        <img src="${imageUrl}" alt="418 response" class="mt-2 max-h-[600px] w-full object-contain" style="max-width: 800px;" />
                     </div>
                 `;
             }

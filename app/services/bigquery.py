@@ -1,4 +1,4 @@
-from google.cloud import bigquery
+from google.cloud import bigquery, bigquery_storage
 from app.services.gcs import fetch_creds
 import pandas as pd
 from app.utils.logger import get_logger

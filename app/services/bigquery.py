@@ -1,24 +1,26 @@
 from google.cloud import bigquery, bigquery_storage
 from app.services.gcs import fetch_creds
-from datetime import datetime
 import pandas as pd
 from app.utils.logger import get_logger
+from typing_extensions import deprecated
 
 logger = get_logger(__name__)
 
 def create_external_table(
         client: bigquery.Client,
         table: str
-        # constraints: str
     ):
     """
     Create external table in BigQuery referencing our DataLake layer in GCS
+
+    Args:
+        client (bigquery.Client): BigQuery client object to execute query
+        table (str): name of the external table to create
     """
 
-    now = datetime.now()
     gcs_uri = f"gs://jbc-sales-bucket/jbc/sales"
 
-    # Build the SQL for creating external table, hive partitioning refers to the year/month fodler structure
+    # Build the SQL for creating external table, partition columns refers to hive partitioning (uri/year/month/.parquet)
     sql = f"""
 CREATE OR REPLACE EXTERNAL TABLE `jbc-sales.jbc_sales_dataset.{table}`
 WITH PARTITION COLUMNS (
@@ -36,11 +38,9 @@ OPTIONS (
         query_job = client.query(sql)
         query_job.result()  # Wait for the query to complete
         msg = f"External table {table} created successfully."
-        # print(msg)
         logger.info(msg)
     except Exception as e:
         msg = f"Error creating external table {table}: {e}"
-        # print(msg)
         logger.error(msg)
 
 def construct_external_tables():
@@ -51,51 +51,9 @@ def construct_external_tables():
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
 
-    tables = [{"name": "transactions",
-"constraints": """
-    TransactionID INT64,
-    Date DATE,
-    StoreID STRING,
-    CustomerID STRING,
-    ProductID STRING,
-    Quantity INTEGER,
-    UnitPrice FLOAT64,
-    DiscountPercent FLOAT64,
-    TaxAmount FLOAT64,
-    ShippingCost FLOAT64,
-    TotalAmount FLOAT64,
-    year SMALLINT,
-    month TINYINT,
+    create_external_table(client, table="sales")
 
-    CustomerID STRING,
-    CustomerName STRING,
-    Segment STRING,
-    year SMALLINT,
-    month TINYINT
-
-    ProductID STRING,
-    ProductName STRING,
-    Category STRING,
-    SubCategory STRING,
-    year SMALLINT,
-    month TINYINT
-
-    StoreID STRING,
-    StoreLocation STRING,
-    Region STRING,
-    State STRING,
-    year SMALLINT,
-    month TINYINT
-
-    Date DATE,
-    year SMALLINT,
-    month TINYINT
-"""
-}]
-
-    for table in tables:
-        create_external_table(client, table=table["name"], constraints=table["constraints"])
-
+@deprecated(reason="This function does not implement security features or protect against SQL injections.")
 def construct_query(
         columns: tuple[str, str] = ("TransactionID", None),
         join_tables: tuple[str, str] = None,
@@ -106,22 +64,22 @@ def construct_query(
         limit: int = 100
     ) -> str:
     """
-    Take in certain parameters and construct a predefined DQL
-    statement to be sent to BigQuery.
+    Take in certain parameters and construct a predefined DQL statement to be sent to BigQuery.
 
     Args:
-    columns (tuple(str, str) or list(tuple)): columns to fetch, if fetching non-transaction table columns must specific table name in column. second value is optional alias for the column (can handle AGG fns as well)
-    join_tables (tuple(str, str) or tuple list): tables to join, first item should be table name, second should be ids to join with transactions
-    where (str): constraint ("col1 > 10"), will be appended to "WHERE"
-    groups (str or list(str)): columns to group by, need to specify tablename 
-    having (str) or list(str)): constraints on groups, need to specify tablename
-    order (tuple(str, bool) or list(tuple)): tuples of columns to use in ordering and whether to use ASC (True) or DESC (False). Must include bool for every entry
-    limit (int): Default 100, limit number of entries returned.
+        columns (tuple(str, str) or list(tuple)): columns to fetch, if fetching non-transaction table columns must specific table name in column. second value is optional alias for the column (can handle AGG fns as well)
+        join_tables (tuple(str, str) or tuple list): tables to join, first item should be table name, second should be ids to join with transactions
+        where (str): constraint ("col1 > 10"), will be appended to "WHERE"
+        groups (str or list(str)): columns to group by, need to specify tablename 
+        having (str) or list(str)): constraints on groups, need to specify tablename
+        order (tuple(str, bool) or list(tuple)): tuples of columns to use in ordering and whether to use ASC (True) or DESC (False). Must include bool for every entry
+        limit (int): Default 100, limit number of entries returned.
 
     Returns:
-    str: our full SQL statement to be sent to BigQuery
+        str: our full SQL statement to be sent to BigQuery
     """
 
+    # Select these columns with optional aliases
     cols = ""
     if type(columns) == tuple:
         cols = columns[0]
@@ -134,6 +92,7 @@ def construct_query(
                 cols += f" AS `{col[1]}`" #backticks for BigQuery quoted identifiers
             if i != len(columns) - 1:
                 cols += ", "
+
     # leaving joins in in case of self join, but shouldn't use or need
     joins = ""
     if join_tables is not None:
@@ -143,8 +102,9 @@ def construct_query(
     if where is not None:
         where = f"WHERE {where}"
     else:
-        where = ""
+        where = "" 
 
+    # Group by these columns
     group_by = "GROUP BY "
     if type(groups) == str:
         group_by += groups
@@ -154,11 +114,13 @@ def construct_query(
             if i != len(groups) - 1:
                 group_by += ", "
 
+    # Having these constraints on groups
     if having is not None:
         having = f"HAVING {having}"
     else:
         having = ""
 
+    # Order by these columns with ASC or DESC (True for ASC, False for DESC)
     order_by = "ORDER BY "
     if type(order) == tuple:
         asc = "ASC" if order[1] else "DESC"
@@ -185,6 +147,12 @@ LIMIT {limit}
 def query_bigquery(sql: str) -> pd.DataFrame:
     """
     Send SQL query to our BigQuery data warehouse, return DataFrame
+
+    Args:
+        sql (str): SQL statement to send to BigQuery
+    
+    Returns:
+        pd.DataFrame: results of query
     """
     df = pd.DataFrame()
 

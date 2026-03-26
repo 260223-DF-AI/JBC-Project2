@@ -58,10 +58,7 @@ def construct_external_tables():
     Create external tables in BigQuery for each parquet file in GCS
     """
 
-    fetch_creds()   
-    project_id = "jbc-sales"
-    client = bigquery.Client(project=project_id)
-
+    client = get_client()
     create_external_table(client, table="sales")
 
 @deprecated("This function does not implement security features or protect against SQL injections.")

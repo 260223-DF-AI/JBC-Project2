@@ -223,6 +223,7 @@ async def orders_from_state(limit: int = 30, order_by: str = "DESC", state: str 
     a given state, above a certain order total (0 by default)
     """
 
+    if limit > 1000: limit = 1000 # start getting issues on frontend client if sending more than 1000
     if order_by not in ["ASC", "DESC"]: order_by = "DESC" # default to ASC if invalid input for order_by
 
     logger = get_logger(__name__)

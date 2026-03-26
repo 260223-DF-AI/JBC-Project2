@@ -3,6 +3,14 @@ import {convertData} from './http.js';
 const header_caption = document.getElementById('header_caption')
 header_caption.innerText += " " + new Date().toLocaleDateString();
 
+const image_container = document.getElementById('image-container')
+image_container.addEventListener(
+    'click',
+    function(event) {
+        image_container.hidden = image_container ? true: false
+    }
+);
+
 function startFaviconRotation() {
     const faviconLink = document.querySelector("link[rel*='icon']");
     if (!faviconLink) return;

@@ -51,7 +51,7 @@ queryRouter = APIRouter(
 )
 
 @queryRouter.get("/active", status_code=status.HTTP_200_OK)
-async def most_active_customers(limit: int, order_by: str = "DESC"):
+async def most_active_customers(limit: int = 5, order_by: str = "DESC"):
     """
     Returns parameterized queries made through BigQuery
     as structured JSON payloads.
@@ -67,21 +67,20 @@ async def most_active_customers(limit: int, order_by: str = "DESC"):
         SELECT CustomerName, COUNT(CustomerName) AS TotalTransactions
         FROM {TABLE}
         GROUP BY CustomerName
-        ORDER BY CustomerName @order_by
+        ORDER BY TotalTransactions {order_by}
         LIMIT @limit;
     """
 
     job_config = bigquery.QueryJobConfig(
     query_parameters=[
         bigquery.ScalarQueryParameter("limit", "INT64", limit),
-        bigquery.ScalarQueryParameter("order_by", "STRING", order_by),
         ]
     )
 
     return query_bigquery(query, job_config)
 
 @queryRouter.get("/discounts", status_code=status.HTTP_200_OK)
-async def discount_analysis(limit: int, order_by: str = "DESC"):
+async def discount_analysis(limit: int = 5, order_by: str = "DESC"):
     """
     Returns query results analyzing how much money in 
     discounts each store has given.
@@ -96,17 +95,17 @@ async def discount_analysis(limit: int, order_by: str = "DESC"):
     query: str = f"""
         SELECT
             StoreID,
+            StoreLocation,
             SUM(UnitPrice * Quantity * DiscountPercent) AS TotalMoneyDiscounted
         FROM {TABLE}
-        GROUP BY StoreID
-        ORDER BY TotalMoneyDiscounted @order_by
+        GROUP BY StoreID, StoreLocation
+        ORDER BY TotalMoneyDiscounted {order_by}
         LIMIT @limit;
     """
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
-            bigquery.ScalarQueryParameter("order_by", "STRING", order_by),
         ]
     )
 
@@ -129,14 +128,13 @@ async def max_revenue_days(limit: int, order_by: str = "DESC"):
         SELECT SUM(UnitPrice) as TotalDailyRevenue, Date
         FROM {TABLE}
         GROUP BY Date
-        ORDER BY TotalDailyRevenue @order_by
+        ORDER BY TotalDailyRevenue {order_by}
         LIMIT @limit;
     """
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
-            bigquery.ScalarQueryParameter("order_by", "STRING", order_by),
         ]
     )
 
@@ -173,13 +171,12 @@ async def top_products(rank: int, order_by: str = "DESC"):
         TimesProductBought
         FROM ProductSales
         WHERE Rank <= @rank
-        ORDER BY Category, TimesProductBought @order_by;
+        ORDER BY TimesProductBought {order_by}, Category;
     """
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("rank", "INT64", rank),
-            bigquery.ScalarQueryParameter("order_by", "STRING", order_by),
         ]
     )
 
@@ -204,14 +201,13 @@ async def worst_stores(limit: int, order_by: str = "ASC"):
             SUM(TotalAmount) as TotalSales
         FROM {TABLE}
         GROUP BY StoreID
-        ORDER BY TotalSales @order_by
+        ORDER BY TotalSales {order_by}
         LIMIT @limit;
     """
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
-            bigquery.ScalarQueryParameter("order_by", "STRING", order_by),
         ]
     )
 

@@ -19,7 +19,10 @@ function setStatus(message, colorClass) {
 export async function convertData() {
     setStatus('Sending /convert request...', 'text-blue-600');
     try {
-        const response = await fetch(`${API_BASE_URL}/convert/?data_folder=data/`, {
+        const params = window.requestParams || { data_folder: 'data/' };
+        const dataFolder = params.data_folder || 'data/';
+        
+        const response = await fetch(`${API_BASE_URL}/convert/?data_folder=${encodeURIComponent(dataFolder)}`, {
             method: 'POST',
             headers: { 'Accept': 'application/json' },
             redirect: 'follow'
@@ -46,21 +49,54 @@ export async function convertData() {
 export async function queryData() {
     setStatus('Sending /query request...', 'text-blue-600');
     try {
-        // Simulating a successful API call with placeholder data
-        setTimeout(() => {
+        const params = window.requestParams || { limit: 4 };
+        const limit = params.limit || 4;
+        
+        const response = await fetch(`${API_BASE_URL}/query/active?limit=${encodeURIComponent(limit)}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            redirect: 'follow'
+        });
 
-            const mockBigQueryData = [
-                { id: 5, StoreName: "big big store", total_sales: 500},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-                { id: 7, StoreName: "oh yeah corp", total_sales: 98273},
-            ];
-            renderTable(mockBigQueryData);
-            setStatus('Query success. Data loaded.', 'text-green-600');
-        }, 500); 
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        let result;
+        try {
+            result = await response.json();
+        } catch (jsonErr) {
+            console.warn('Failed to parse JSON from query endpoint', jsonErr);
+            setStatus('Invalid response format from server.', 'text-red-600');
+            return;
+        }
+
+        // Handle case where result is a stringified JSON
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (parseErr) {
+                console.error('Failed to parse stringified JSON:', parseErr);
+                setStatus('Invalid response format from server.', 'text-red-600');
+                return;
+            }
+        }
+
+        // Validate result is an array before rendering
+        console.log('Query result type:', typeof result, 'is array:', Array.isArray(result));
+        
+        let dataToRender = result;
+        if (!Array.isArray(result)) {
+            // Check if result has a data property that contains the array
+            if (result && typeof result === 'object' && Array.isArray(result.data)) {
+                dataToRender = result.data;
+            } else {
+                console.error('Query returned non-array data:', result);
+                setStatus('Unexpected response format.', 'text-red-600');
+                return;
+            }
+        }
+        
+        renderTable(dataToRender);
+        setStatus('Query successful!', 'text-green-600');
 
     } catch (error) {
         console.error('Query Error:', error);

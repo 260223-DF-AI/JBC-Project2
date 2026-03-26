@@ -2,6 +2,9 @@ import pandas as pd
 import os
 import sys
 import logging
+from collections import defaultdict
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from ..utils.validate import validate_df
 
@@ -36,7 +39,8 @@ def delete_existing_parquets(data_folder: str):
 
 def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
     """
-    Efficiently convert CSV data to a parquet file
+    Efficiently convert CSV data to parquet files in chunks,
+    writing one file per partition (year/month) using PyArrow.
     """
 
     # delete pre-existing parquet files in data folder
@@ -46,28 +50,37 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
     files: list[str] = os.listdir(data_folder)
     csvs: list[str] = [(data_folder + file) for file in files if file.endswith("csv")]
 
-    # read each csv in chunks, appending to parquet files as we go 
-    for i, csv in enumerate(csvs):
+    # collect data by partition to write one file per month
+    partitions = defaultdict(list)
+    
+    # read each csv in chunks, validating and grouping by partition
+    for csv in csvs:
         csv_chunks = pd.read_csv(csv, chunksize=chunk_size)
-        # files_exist: bool = parquets_exists(data_folder)
-        files_exist: bool = i > 0
-
         for chunk in csv_chunks:
-
-            file_path: str = f"{data_folder}sales"
-            
             df = validate_df(chunk)
-            partition_cols = ["year", "month"]
             
-            # append or write to file depending on whether it already exists 
-            df.to_parquet(
-                file_path,
-                engine='fastparquet',
-                index=False,
-                partition_cols=partition_cols,
-                append=files_exist
-            )
-        msg = f"Converted {csv} to parquet ({file_path})"
+            # group chunks by (year, month)
+            for year in df['year'].unique():
+                for month in df['month'].unique():
+                    partition_key = (year, month)
+                    partition_data = df[(df['year'] == year) & (df['month'] == month)]
+                    partitions[partition_key].append(partition_data)
+    
+    # write one file per partition
+    file_path: str = f"{data_folder}sales"
+    os.makedirs(file_path, exist_ok=True)
+    
+    for (year, month), dfs in partitions.items():
+        # combine all chunks for this partition
+        combined_df = pd.concat(dfs, ignore_index=True)
+        table = pa.Table.from_pandas(combined_df)
+        
+        # write to partitioned directory
+        partition_dir = f"{file_path}/year={year}/month={month}"
+        os.makedirs(partition_dir, exist_ok=True)
+        pq.write_table(table, f"{partition_dir}/data.parquet")
+        
+        msg = f"Wrote {len(combined_df)} rows to year={year}/month={month}"
         logger.info(msg)
 
 

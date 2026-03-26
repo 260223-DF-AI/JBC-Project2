@@ -73,7 +73,7 @@ def upload_single_file(blob: storage.Blob, file_path: str, local_crc: str, chunk
     if not blob_check(blob, local_crc):
         raise ValueError(f"GCS hash does not match local after upload.\nFile: {file_path}\nLocal: {local_crc}\nGCS: {blob.crc32c}")
 
-@log_execution
+# @log_execution
 def upload_parquet_files(
         bucket_name: str,
         local_folder: str,

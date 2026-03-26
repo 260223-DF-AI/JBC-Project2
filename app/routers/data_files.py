@@ -1,5 +1,6 @@
 from app.services.bigquery import query_bigquery
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import FileResponse
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
@@ -27,6 +28,14 @@ async def convert_csvs(data_folder: str = ""):
     # a data folder needs to be supplied
     if data_folder == "":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    
+    elif data_folder == "418":
+        return FileResponse(
+            path="../misc/teapot.gif",
+            status_code=HTTPException(status_code=status.HTTP_418_IM_A_TEAPOT),
+            media_type="gif",
+            filename="teapot.gif"
+            )
 
     try:
         convert_to_parquet(data_folder)

@@ -28,6 +28,23 @@ export async function convertData() {
             redirect: 'follow'
         });
         
+        if (response.status === 418) {
+            // Teapot response returns an image blob
+            const imageBlob = await response.blob();
+            const imageUrl = URL.createObjectURL(imageBlob);
+            const imageContainer = document.getElementById('image-container');
+            if (imageContainer) {
+                imageContainer.innerHTML = `
+                    <div class="mt-4 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                        <p class="text-sm font-medium text-gray-700">Server returned 418: image returned from teapot</p>
+                        <img src="${imageUrl}" alt="418 response" class="mt-2 max-h-96 w-auto object-contain" />
+                    </div>
+                `;
+            }
+            setStatus('Received 418 teapot image response', 'text-orange-600');
+            return;
+        }
+
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         let result = null;

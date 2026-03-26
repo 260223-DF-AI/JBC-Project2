@@ -1,7 +1,5 @@
-import json
-import pandas as pd
 from app.services.bigquery import query_bigquery
-from fastapi import FastAPI, APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet

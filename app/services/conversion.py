@@ -126,5 +126,5 @@ def find_disk_savings_pct(data_folder: str) -> float:
 
 
 if __name__ == "__main__":
-    # convert_to_parquet("data/")
-    print(f'{find_disk_savings_pct("data/"):.2f}%')
+    convert_to_parquet("data/")
+    # print(f'{find_disk_savings_pct("data/"):.2f}%')

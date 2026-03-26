@@ -118,14 +118,15 @@ def find_disk_savings_pct(data_folder: str) -> float:
     if not os.path.exists(data_folder):
         raise FileNotFoundError(f"The directory {data_folder} does not exist.")
 
-    # check folder
-    with os.scandir(data_folder) as entries:
-        for entry in entries:
-            if entry.is_file():
-                if entry.name.endswith('.csv'):
-                    csv_total_size += entry.stat().st_size
-                elif entry.name.endswith('.parquet'):
-                    parquet_total_size += entry.stat().st_size
+    # check folder and all subdirectories
+    for root, _, files in os.walk(data_folder):
+        for file in files:
+            if file.endswith('.csv'):
+                file_path = os.path.join(root, file)
+                csv_total_size += os.path.getsize(file_path)
+            elif file.endswith('.parquet'):
+                file_path = os.path.join(root, file)
+                parquet_total_size += os.path.getsize(file_path)
 
     # avoid DivideByZero
     if csv_total_size == 0:

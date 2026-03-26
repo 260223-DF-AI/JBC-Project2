@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from google.cloud import bigquery
 
-from ..services.conversion import convert_to_parquet
+from ..services.conversion import convert_to_parquet, find_disk_savings_pct
 from ..services.gcs import upload_parquet_files
 from ..services.bigquery import construct_external_tables
 from ..utils.logger import get_logger
@@ -55,6 +55,9 @@ async def convert_csvs(data_folder: str = ""):
         logger.info(f"GCS files upload took {(end_upload-start_upload).total_seconds()}")
         
         construct_external_tables()
+
+        disk_savings_percentage: float = find_disk_savings_pct()
+        logger.info(f"Converting from CSV to Parquets has saved {disk_savings_percentage}% in storage space")
         return {
             "status": "success" 
         }

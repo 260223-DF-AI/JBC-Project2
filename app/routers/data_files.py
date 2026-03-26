@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.services.bigquery import query_bigquery
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import FileResponse
@@ -46,8 +48,12 @@ async def convert_csvs(data_folder: str = ""):
                             )
 
     else:
+        start_upload: datetime = datetime.now()
         # call function to pass files to GCS here
         upload_parquet_files("jbc-sales-bucket", data_folder, "jbc", "sales")
+        end_upload: datetime = datetime.now()
+        logger.info(f"GCS files upload took {(end_upload-start_upload).total_seconds()}")
+        
         construct_external_tables()
         return {
             "status": "success" 

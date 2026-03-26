@@ -56,7 +56,7 @@ async def convert_csvs(data_folder: str = ""):
         
         construct_external_tables()
 
-        disk_savings_percentage: float = find_disk_savings_pct()
+        disk_savings_percentage: float = find_disk_savings_pct("data/")
         logger.info(f"Converting from CSV to Parquets has saved {disk_savings_percentage}% in storage space")
         return {
             "status": "success" 

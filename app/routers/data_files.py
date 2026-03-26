@@ -1,26 +1,37 @@
 import json
 import pandas as pd
+<<<<<<< bigquery
 from app.services.bigquery import query_bigquery
+=======
+from app.services.bigquery import get_client
+>>>>>>> main
 from fastapi import FastAPI, APIRouter, HTTPException, Query, status
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
+<<<<<<< bigquery
 from ..services.gcs import upload_parquet_files
 from ..services.bigquery import construct_external_tables
+=======
+>>>>>>> main
 from ..utils.logger import get_logger
 
-router = APIRouter(
+convertRouter = APIRouter(
     prefix="/convert",
     tags=["convert"]
 )
 
+TABLE: str = "`jbc-sales.jbc_sales_dataset.sales`"
 
-@router.post("/", status_code=status.HTTP_200_OK)
+@convertRouter.post("/", status_code=status.HTTP_200_OK)
 async def convert_csvs(data_folder: str = ""):
     """
     Initializes the CSV to Parquet conversion process,
     sending the resulting files to GCS for analysis.
     """
+
+    logger = get_logger(__name__)
+    logger.info("Beginning convert_csvs endpoint execution")
 
     # a data folder needs to be supplied
     if data_folder == "":
@@ -36,8 +47,11 @@ async def convert_csvs(data_folder: str = ""):
 
     else:
         # call function to pass files to GCS here
+<<<<<<< bigquery
         results = upload_parquet_files("jbc-sales-bucket", data_folder, "jbc", "sales")
         construct_external_tables()
+=======
+>>>>>>> main
         return {
             "files": generated_file_paths
         }
@@ -69,6 +83,10 @@ async def most_active_customers(limit: int, order_by: str = "DESC"):
         LIMIT @limit;
     """
 
+<<<<<<< bigquery
+=======
+    client = get_client()
+>>>>>>> main
     job_config = bigquery.QueryJobConfig(
     query_parameters=[
         bigquery.ScalarQueryParameter("limit", "INT64", limit),
@@ -76,7 +94,12 @@ async def most_active_customers(limit: int, order_by: str = "DESC"):
         ]
     )
 
+<<<<<<< bigquery
     return query_bigquery(query, job_config)
+=======
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+>>>>>>> main
 
 @queryRouter.get("/discounts", status_code=status.HTTP_200_OK)
 async def discount_analysis(limit: int, order_by: str = "DESC"):
@@ -101,6 +124,10 @@ async def discount_analysis(limit: int, order_by: str = "DESC"):
         LIMIT @limit;
     """
 
+<<<<<<< bigquery
+=======
+    client = get_client()
+>>>>>>> main
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
@@ -108,7 +135,12 @@ async def discount_analysis(limit: int, order_by: str = "DESC"):
         ]
     )
 
+<<<<<<< bigquery
     return query_bigquery(query, job_config)
+=======
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+>>>>>>> main
 
 @queryRouter.get("/max_revenue_days", status_code=status.HTTP_200_OK)
 async def max_revenue_days(limit: int, order_by: str = "DESC"):
@@ -131,6 +163,10 @@ async def max_revenue_days(limit: int, order_by: str = "DESC"):
         LIMIT @limit;
     """
 
+<<<<<<< bigquery
+=======
+    client = get_client()
+>>>>>>> main
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
@@ -138,7 +174,12 @@ async def max_revenue_days(limit: int, order_by: str = "DESC"):
         ]
     )
 
+<<<<<<< bigquery
     return query_bigquery(query, job_config)
+=======
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+>>>>>>> main
 
 @queryRouter.get("/top_products", status_code=status.HTTP_200_OK)
 async def top_products(rank: int, order_by: str = "DESC"):
@@ -174,6 +215,10 @@ async def top_products(rank: int, order_by: str = "DESC"):
         ORDER BY Category, TimesProductBought @order_by;
     """
 
+<<<<<<< bigquery
+=======
+    client = get_client()
+>>>>>>> main
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("rank", "INT64", rank),
@@ -181,7 +226,12 @@ async def top_products(rank: int, order_by: str = "DESC"):
         ]
     )
 
+<<<<<<< bigquery
     return query_bigquery(query, job_config)
+=======
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+>>>>>>> main
 
 @queryRouter.get("/worst_stores", status_code=status.HTTP_200_OK)
 async def worst_stores(limit: int, order_by: str = "ASC"):
@@ -206,6 +256,10 @@ async def worst_stores(limit: int, order_by: str = "ASC"):
         LIMIT @limit;
     """
 
+<<<<<<< bigquery
+=======
+    client = get_client()
+>>>>>>> main
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("limit", "INT64", limit),
@@ -213,4 +267,9 @@ async def worst_stores(limit: int, order_by: str = "ASC"):
         ]
     )
 
+<<<<<<< bigquery
     return query_bigquery(query, job_config)
+=======
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+>>>>>>> main

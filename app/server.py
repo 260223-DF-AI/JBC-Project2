@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import data_files
-from utils.logger import get_logger
+from .routers import data_files, logs
+from .utils.logger import get_logger, log_execution
 
 
 logger = get_logger(__name__)
@@ -10,6 +11,15 @@ app = FastAPI(
     title = "JBC API",
     description = "API for Sales Data"
     )
+
+# ensure browser can access our api
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # would be replaced with web url if hosted publicly 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -24,13 +34,15 @@ async def shutdown_event():
     """Clean up resources on shutdown"""
     logger.info("Shutting down JBC Sales Data API")
 
-
+@log_execution
 @app.get("/")
 def get_root():
     return {"message": "Hello from main"}
 
 # add router endpoints to app!
-app.include_router(data_files.router)
+app.include_router(data_files.convertRouter)
+app.include_router(data_files.queryRouter)
+app.include_router(logs.router)
 
 
 def start_server():

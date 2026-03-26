@@ -1,5 +1,6 @@
 """
-Session-scoped fixtures that will generate all test data (folders and files) at runtime.
+Session-scoped fixtures that will generate test data and start a FastAPI
+test client for the duration of the test session.
 """
 
 import pytest
@@ -37,7 +38,11 @@ _CSV_BATCHES = [
 ]
 
 
+# Setup for test_conversion.py
 def _write_csv(path: str, rows: list[str]) -> None:
+    """
+    Helper function to write a CSV file with given rows and a predefined header.
+    """
     with open(path, "w", newline="") as f:
         f.write(_CSV_HEADER + "\n")
         for row in rows:
@@ -45,6 +50,10 @@ def _write_csv(path: str, rows: list[str]) -> None:
 
 
 def _create_dir(path: str) -> None:
+    """
+    Helper function to create a directory with the given path if it
+    exist yet.
+    """
     os.makedirs(path, exist_ok=True)
 
 

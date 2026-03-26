@@ -1,3 +1,4 @@
+from datetime import datetime
 from google.cloud import bigquery, bigquery_storage
 from app.services.gcs import fetch_creds
 import pandas as pd
@@ -169,9 +170,11 @@ def query_bigquery(sql: str, job_config: bigquery.QueryJobConfig) -> pd.DataFram
     storage_client = bigquery_storage.BigQueryReadClient()
 
     try:
+        start_time: datetime = datetime.now()
         results = client.query(sql, job_config=job_config).to_dataframe(bqstorage_client=storage_client)
+        end_time: datetime = datetime.now()
         msg = f"Query completed successfully"
-        logger.info(msg)
+        logger.info(msg + f", spent {(end_time-start_time).total_seconds()}s to run query.")
     except Exception as e:
         msg = f"Error with query: {e}"
         logger.error(msg)

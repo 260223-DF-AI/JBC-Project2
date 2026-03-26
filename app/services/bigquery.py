@@ -1,7 +1,6 @@
-from google.cloud import bigquery
+from google.cloud import bigquery, bigquery_storage
 from app.services.gcs import fetch_creds
 from datetime import datetime
-from google.cloud import storage
 import pandas as pd
 from app.utils.logger import get_logger
 
@@ -98,12 +97,12 @@ def construct_external_tables():
         create_external_table(client, table=table["name"], constraints=table["constraints"])
 
 def construct_query(
-        columns: str = "TransactionID",
-        join_tables: tuple = None,
+        columns: tuple[str, str] = ("TransactionID", None),
+        join_tables: tuple[str, str] = None,
         where: str = None,
         groups: str = None,
         having: str = None,
-        order: tuple = None,
+        order: tuple[str, str] = None,
         limit: int = 100
     ) -> str:
     """
@@ -111,11 +110,11 @@ def construct_query(
     statement to be sent to BigQuery.
 
     Args:
-    columns (str or list(str)): columns to fetch, if fetching non-transaction table columns must specific table name in column
+    columns (tuple(str, str) or list(tuple)): columns to fetch, if fetching non-transaction table columns must specific table name in column. second value is optional alias for the column (can handle AGG fns as well)
     join_tables (tuple(str, str) or tuple list): tables to join, first item should be table name, second should be ids to join with transactions
     where (str): constraint ("col1 > 10"), will be appended to "WHERE"
     groups (str or list(str)): columns to group by, need to specify tablename 
-    having
+    having (str) or list(str)): constraints on groups, need to specify tablename
     order (tuple(str, bool) or list(tuple)): tuples of columns to use in ordering and whether to use ASC (True) or DESC (False). Must include bool for every entry
     limit (int): Default 100, limit number of entries returned.
 
@@ -124,14 +123,18 @@ def construct_query(
     """
 
     cols = ""
-    if type(columns) == str:
-        cols = columns
+    if type(columns) == tuple:
+        cols = columns[0]
+        if columns[1] is not None:
+            cols += f" AS {columns[1]}"
     elif type(columns) == list:
         for i, col in enumerate(columns):
-            cols += col
+            cols += col[0]
+            if col[1] is not None:
+                cols += f" AS `{col[1]}`" #backticks for BigQuery quoted identifiers
             if i != len(columns) - 1:
                 cols += ", "
-
+    # leaving joins in in case of self join, but shouldn't use or need
     joins = ""
     if join_tables is not None:
         for table, id in join_tables:
@@ -187,11 +190,12 @@ def query_bigquery(sql: str) -> pd.DataFrame:
 
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
+    storage_client = bigquery_storage.BigQueryReadClient()
 
     try:
         query_job = client.query(sql)
         rows = query_job.result()
-        df = rows.to_dataframe()
+        df = rows.to_dataframe(bqstorage_client=storage_client)
         msg = f"Query completed successfully"
         logger.info(msg)
     except Exception as e:
@@ -200,8 +204,11 @@ def query_bigquery(sql: str) -> pd.DataFrame:
 
     return df
 
-if __name__ == "__main__":
 
+def demo():
+    """
+    Full pipeline demonstration: CSV -> Parquet -> GCS -> BigQuery -> DataFrame
+    """
 
     # from app.services.conversion import convert_to_parquet
     # from app.services.gcs import upload_parquet_files
@@ -213,7 +220,8 @@ if __name__ == "__main__":
 
 
     sql = construct_query(
-        columns = "SUM(UnitPrice)",
+        columns = ("SUM(UnitPrice)", "Sum of Purchases over 1000"), #must use backtick for escapes
+        # join_tables = None,
         where = "UnitPrice >= 1000",
         groups = ["CustomerID"],
         having = None,
@@ -232,3 +240,7 @@ if __name__ == "__main__":
     df = query_bigquery(sql)
 
     print(df)
+
+
+if __name__ == "__main__":
+    demo()

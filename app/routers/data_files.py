@@ -1,4 +1,7 @@
-from fastapi import FastAPI, APIRouter, HTTPException, status
+import json
+import pandas as pd
+from app.services.bigquery import query_bigquery
+from fastapi import FastAPI, APIRouter, HTTPException, Query, status
 from google.cloud import bigquery
 
 from ..services.conversion import convert_to_parquet
@@ -44,28 +47,31 @@ queryRouter = APIRouter(
 )
 
 @queryRouter.get("/", status_code=status.HTTP_200_OK)
-async def parameterized_query(params = None):
+async def parameterized_query(
+        sql: str = Query(..., description="SQL query to execute; use @param_name for named parameters."),
+        params: str = Query(None, description="Optional dict object of named parameter values, e.g. {\"year\": \"2024\"}")
+    ):
     """
-    Queries through BigQuery with given parameters.
-    Returns as structured JSON payloads.
-
-    TODO: plan is to take a date range parameter, fetch through
-          BigQuery with the set date range, and return payloads 
-          as structured JSON to browser devices
+    Returns parameterized queries made through BigQuery
+    as structured JSON payloads.
     """
-
+    parsed_params: dict | None = None
+    if params is not None:
+        try:
+            parsed_params = json.loads(params)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="params must be a valid JSON object string."
+                                )
+        
     logger = get_logger(__name__)
     logger.info("Beginning query endpoint execution")
-
-    if params is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="No query parameters provided."
-                            )
-
     try:
-        # call the query from bigquery here
-        pass
-
+        rows = query_bigquery(sql, parsed_params)
+        return {
+            "data": rows,
+            "count": len(rows)
+        }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Error executing query: {e}"

@@ -36,9 +36,18 @@ export async function convertData() {
             if (imageContainer) {
                 imageContainer.innerHTML = `
                     <div class="mt-4 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                        <audio autoplay controls style="width: 100%; margin-bottom: 12px;">
+                            <source src="../misc/teapot.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
                         <img src="${imageUrl}" alt="418 response" class="mt-2 max-h-[600px] w-full object-contain" style="max-width: 800px;" />
                     </div>
                 `;
+                // Try to play the audio programmatically
+                const audioElement = imageContainer.querySelector('audio');
+                if (audioElement) {
+                    audioElement.play().catch(err => console.log('Autoplay blocked, user can manually click play:', err));
+                }
             }
             setStatus('Received 418 teapot image response', 'text-orange-600');
             return;

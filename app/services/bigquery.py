@@ -58,6 +58,7 @@ def construct_external_tables():
     Create external tables in BigQuery for each parquet file in GCS
     """
 
+    fetch_creds()   
     project_id = "jbc-sales"
     client = bigquery.Client(project=project_id)
 
@@ -154,36 +155,34 @@ LIMIT {limit}
 
     return sql
 
-def query_bigquery(sql: str) -> pd.DataFrame:
+def query_bigquery(sql: str, job_config: bigquery.QueryJobConfig) -> pd.DataFrame:
     """
     Send SQL query to our BigQuery data warehouse, return DataFrame
 
     Args:
         sql (str): SQL statement to send to BigQuery
+        job_config (bigquery.QueryJobConfig): configuration for the query job, including parameters to prevent SQL injection
     
     Returns:
         pd.DataFrame: results of query
     """
-    df = pd.DataFrame()
+    results = pd.DataFrame()
 
-    project_id = "jbc-sales"
-    client = bigquery.Client(project=project_id)
+    client = get_client()
     storage_client = bigquery_storage.BigQueryReadClient()
 
     try:
-        query_job = client.query(sql)
-        rows = query_job.result()
-        df = rows.to_dataframe(bqstorage_client=storage_client)
+        results = client.query(sql, job_config=job_config).to_dataframe(bqstorage_client=storage_client)
         msg = f"Query completed successfully"
         logger.info(msg)
     except Exception as e:
         msg = f"Error with query: {e}"
         logger.error(msg)
 
-    return df
+    return results.to_json(orient="records")
 
 
-def demo():
+def _demo():
     """
     Full pipeline demonstration: CSV -> Parquet -> GCS -> BigQuery -> DataFrame
     """
@@ -194,7 +193,7 @@ def demo():
     # convert_to_parquet("data/")
 
     parquets_folder_path = "data/"
-    # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "stg_sales")
+    # results = upload_parquet_files("jbc-sales-bucket", parquets_folder_path, "jbc", "sales")
 
 
     sql = construct_query(
@@ -215,10 +214,10 @@ def demo():
     # create_external_table(client, "sales")
 
     df = pd.DataFrame()
-    df = query_bigquery(sql)
+    # df = query_bigquery(sql)
 
     print(df)
 
 
 if __name__ == "__main__":
-    demo()
+    _demo()

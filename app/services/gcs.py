@@ -98,6 +98,8 @@ def upload_parquet_files(
         FileNotFoundError: If no .parquet files are found in the local folder
     """
 
+    fetch_creds()
+
     # Connect to GCS, fetch bucket
     client = storage.Client()
     bucket = client.bucket(bucket_name)

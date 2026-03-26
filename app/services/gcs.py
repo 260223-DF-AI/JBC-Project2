@@ -189,13 +189,14 @@ def fetch_creds():
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
 
-    proceed = ""
-    while True:
-        proceed = input("Credentials loaded. Proceed with connection? (y/n) ").lower()
-        if proceed in ["y", "yes"]:
-            break
-        elif proceed in ["n", "no"]:
-            sys.exit()
+    # remove manual proceed. we ALWAYS want to proceed. we be proceedin' on the regular
+    # proceed = ""
+    # while True:
+    #     proceed = input("Credentials loaded. Proceed with connection? (y/n) ").lower()
+    #     if proceed in ["y", "yes"]:
+    #         break
+    #     elif proceed in ["n", "no"]:
+    #         sys.exit()
 
 if __name__ == "__main__":
     from app.services.conversion import convert_to_parquet

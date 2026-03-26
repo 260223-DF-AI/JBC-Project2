@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from app.services.bigquery import query_bigquery
+from app.services.bigquery import get_client
 from fastapi import FastAPI, APIRouter, HTTPException, Query, status
 from google.cloud import bigquery
 
@@ -11,6 +11,8 @@ convertRouter = APIRouter(
     prefix="/convert",
     tags=["convert"]
 )
+
+TABLE: str = "`jbc-sales.jbc_sales_dataset.sales`"
 
 @convertRouter.post("/", status_code=status.HTTP_200_OK)
 async def convert_csvs(data_folder: str = ""):
@@ -46,33 +48,32 @@ queryRouter = APIRouter(
     tags=["query"]
 )
 
-@queryRouter.get("/", status_code=status.HTTP_200_OK)
-async def parameterized_query(
-        sql: str = Query(..., description="SQL query to execute; use @param_name for named parameters."),
-        params: str = Query(None, description="Optional dict object of named parameter values, e.g. {\"year\": \"2024\"}")
-    ):
+@queryRouter.get("/active", status_code=status.HTTP_200_OK)
+async def most_active_customers(limit: int):
     """
     Returns parameterized queries made through BigQuery
     as structured JSON payloads.
     """
-    parsed_params: dict | None = None
-    if params is not None:
-        try:
-            parsed_params = json.loads(params)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="params must be a valid JSON object string."
-                                )
         
     logger = get_logger(__name__)
-    logger.info("Beginning query endpoint execution")
-    try:
-        rows = query_bigquery(sql, parsed_params)
-        return {
-            "data": rows,
-            "count": len(rows)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Error executing query: {e}"
-                            )
+    logger.info("Beginning most active query endpoint execution")
+    
+    query: str = f"""
+SELECT CustomerName, COUNT(CustomerName) AS TotalTransactions
+FROM {TABLE}
+GROUP BY CustomerName
+ORDER BY CustomerName DESC
+LIMIT @limit;
+"""
+
+    client = get_client()
+    job_config = bigquery.QueryJobConfig(
+    query_parameters=[
+        bigquery.ScalarQueryParameter("limit", "INT64", limit)
+        ]
+    )
+
+    results: pd.DataFrame = client.query(query, job_config=job_config).to_dataframe()
+    return results.to_json(orient="records")
+
+

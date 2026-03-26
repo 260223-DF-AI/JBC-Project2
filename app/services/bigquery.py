@@ -1,10 +1,20 @@
-from google.cloud import bigquery, bigquery_storage
+from google.cloud import bigquery
 from app.services.gcs import fetch_creds
 import pandas as pd
 from app.utils.logger import get_logger
 from typing_extensions import deprecated
 
 logger = get_logger(__name__)
+
+def get_client():
+    """
+    Return a BigQuery client object to be used elsewhere
+    """
+
+    fetch_creds()
+    project_id = "jbc-sales"
+    return bigquery.Client(project=project_id)
+
 
 def create_external_table(
         client: bigquery.Client,
@@ -53,7 +63,7 @@ def construct_external_tables():
 
     create_external_table(client, table="sales")
 
-@deprecated(reason="This function does not implement security features or protect against SQL injections.")
+@deprecated("This function does not implement security features or protect against SQL injections.")
 def construct_query(
         columns: tuple[str, str] = ("TransactionID", None),
         join_tables: tuple[str, str] = None,

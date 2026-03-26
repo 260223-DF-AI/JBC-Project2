@@ -175,6 +175,18 @@ const requests = [
             { name: 'limit', label: 'Limit', placeholder: 'e.g., 4', required: false },
             { name: 'order_by', label: 'Order By', placeholder: 'ASC or DESC', required: false }
         ]
+    },
+    {
+        id: 'orders_from_state',
+        label: 'GET /query/orders_from_state - Orders in one state',
+        method: 'GET',
+        handler: makeQueryHandler('/query/orders_from_state'),
+        parameters: [
+            { name: 'limit', label: 'Limit', placeholder: 'e.g., 4', required: false },
+            { name: 'order_by', label: 'Order By', placeholder: 'ASC or DESC', required: false },
+            { name: 'state', label: 'State', placeholder: 'e.g., IL', required: false },
+            { name: 'order_total_above', label: 'Order Total Above', placeholder: 'e.g., 500', required: false },
+        ]
     }
 ];
 

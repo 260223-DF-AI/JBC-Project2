@@ -213,3 +213,41 @@ async def worst_stores(limit: int = 5, order_by: str = "ASC"):
     )
 
     return query_bigquery(query, job_config)
+
+
+
+@queryRouter.get("/orders_from_state", status_code=status.HTTP_200_OK)
+async def orders_from_state(limit: int = 30, order_by: str = "DESC", state: str = "IL", order_total_above: int = 0):
+    """
+    Returns query results analyzing orders from
+    a given state, above a certain order total (0 by default)
+    """
+
+    if order_by not in ["ASC", "DESC"]: order_by = "DESC" # default to ASC if invalid input for order_by
+
+    logger = get_logger(__name__)
+    logger.info("Beginning worst stores query endpoint execution")
+
+    query: str = f"""
+        SELECT
+            TransactionID,
+            State,
+            UnitPrice,
+            Quantity,
+            TotalAmount
+        FROM {TABLE}
+        WHERE STATE = @state
+        AND TotalAmount > @order_total_above
+        ORDER BY TotalAmount {order_by}
+        LIMIT @limit;
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("state", "STRING", state),
+            bigquery.ScalarQueryParameter("order_total_above", "INT64", order_total_above),
+            bigquery.ScalarQueryParameter("limit", "INT64", limit),
+        ]
+    )
+
+    return query_bigquery(query, job_config)

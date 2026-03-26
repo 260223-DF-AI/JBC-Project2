@@ -34,18 +34,7 @@ def delete_existing_parquets(data_folder: str):
                     logger.error(msg)
 
 
-def parquets_exists(data_folder: str):
-    """
-    Return True if Parquet files are created and in data folder,
-    Return False otherwise
-    """
-
-    files: list[str] = os.listdir(data_folder)
-    # there should be five 
-    return len([1 for file in files if file.endswith("parquet")]) == 5
-
-
-def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
+def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
     """
     Efficiently convert CSV data to a parquet file
     """
@@ -56,15 +45,6 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
     # find source CSV files to operate on
     files: list[str] = os.listdir(data_folder)
     csvs: list[str] = [(data_folder + file) for file in files if file.endswith("csv")]
-
-    # columns to keep for each table
-    table_columns: dict[str, list[str]] = {
-        "transactions": ["TransactionID", "Date", "StoreID", "CustomerID", "ProductID", "Quantity", "UnitPrice", "DiscountPercent", "TaxAmount", "ShippingCost", "TotalAmount"],
-        "stores": ["StoreID", "StoreLocation", "Region", "State"],
-        "dates": ["Date"],
-        "products": ["ProductID", "ProductName", "Category", "SubCategory"],
-        "customers": ["CustomerID", "CustomerName", "Segment"]
-    }
 
     # read each csv in chunks, appending to parquet files as we go 
     for i, csv in enumerate(csvs):
@@ -89,9 +69,6 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000) -> list[str]:
             )
         msg = f"Converted {csv} to parquet ({file_path})"
         logger.info(msg)
-
-    parquet_file_paths: list[str] = [f"{data_folder}{table_name}.parquet" for table_name in table_columns.keys()]
-    return parquet_file_paths
 
 
 def find_disk_savings_pct(data_folder: str) -> float:

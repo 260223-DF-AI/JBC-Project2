@@ -29,7 +29,7 @@ async def convert_csvs(data_folder: str = ""):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     try:
-        generated_file_paths: list[str] = convert_to_parquet(data_folder)
+        convert_to_parquet(data_folder)
 
     except FileNotFoundError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -38,10 +38,10 @@ async def convert_csvs(data_folder: str = ""):
 
     else:
         # call function to pass files to GCS here
-        results = upload_parquet_files("jbc-sales-bucket", data_folder, "jbc", "sales")
+        upload_parquet_files("jbc-sales-bucket", data_folder, "jbc", "sales")
         construct_external_tables()
         return {
-            "files": generated_file_paths
+            "status": "success" 
         }
 
 
@@ -172,7 +172,7 @@ async def top_products(rank: int = 3, order_by: str = "DESC"):
         Rank
         FROM ProductSales
         WHERE Rank <= @rank
-        ORDER BY TimesProductBought {order_by}, Category;
+        ORDER BY Category, Rank;
     """
 
     job_config = bigquery.QueryJobConfig(

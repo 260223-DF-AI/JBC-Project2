@@ -49,7 +49,7 @@ queryRouter = APIRouter(
 @queryRouter.get("/", status_code=status.HTTP_200_OK)
 async def parameterized_query(
         sql: str = Query(..., description="SQL query to execute; use @param_name for named parameters."),
-        params: str = Query(None, description="Optional JSON-encoded object of named parameter values, e.g. {\"year\": \"2024\"}")
+        params: str = Query(None, description="Optional dict object of named parameter values, e.g. {\"year\": \"2024\"}")
     ):
     """
     Returns parameterized queries made through BigQuery
@@ -68,7 +68,10 @@ async def parameterized_query(
     logger.info("Beginning query endpoint execution")
     try:
         rows = query_bigquery(sql, parsed_params)
-        return {"data": rows, "count": len(rows)}
+        return {
+            "data": rows,
+            "count": len(rows)
+        }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Error executing query: {e}"

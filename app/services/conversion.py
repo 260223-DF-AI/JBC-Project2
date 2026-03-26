@@ -70,10 +70,33 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
     file_path: str = f"{data_folder}sales"
     os.makedirs(file_path, exist_ok=True)
     
+    # Define PyArrow schema to ensure correct types for BigQuery
+    schema_fields = []
+    sample_combined_df = None
+    for dfs in partitions.values():
+        sample_combined_df = pd.concat(dfs, ignore_index=True)
+        break
+    
+    if sample_combined_df is not None:
+        for col_name in sample_combined_df.columns:
+            col = sample_combined_df[col_name]
+            if pd.api.types.is_integer_dtype(col):
+                arrow_type = pa.int64()
+            elif pd.api.types.is_float_dtype(col):
+                arrow_type = pa.float64()
+            elif pd.api.types.is_datetime64_any_dtype(col):
+                arrow_type = pa.timestamp('us')
+            else:
+                arrow_type = pa.string()
+            schema_fields.append(pa.field(col_name, arrow_type))
+        schema = pa.schema(schema_fields)
+    else:
+        schema = None
+    
     for (year, month), dfs in partitions.items():
         # combine all chunks for this partition
         combined_df = pd.concat(dfs, ignore_index=True)
-        table = pa.Table.from_pandas(combined_df)
+        table = pa.Table.from_pandas(combined_df, schema=schema)
         
         # write to partitioned directory
         partition_dir = f"{file_path}/year={year}/month={month}"

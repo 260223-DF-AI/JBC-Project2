@@ -22,6 +22,15 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
     for col in str_cols:
         df[col] = df[col].astype("object")
 
+    # Convert categorical columns to integer codes for BigQuery compatibility
+    # categorical_cols = ["Category", "SubCategory", "Segment", "Region"]
+    # for col in categorical_cols:
+    #     if col in df.columns:
+    #         # Create mapping from category name to integer code
+    #         unique_cats = sorted(df[col].unique())
+    #         cat_mapping = {cat: idx + 1 for idx, cat in enumerate(unique_cats)}
+    #         df[col] = df[col].map(cat_mapping).astype("int64")
+
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d", errors="coerce")
         # Remove rows with invalid dates so derived year/month are always finite.

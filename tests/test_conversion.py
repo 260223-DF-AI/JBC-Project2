@@ -2,48 +2,43 @@
 Tests for the conversion service.
 """
 
-import pytest
 import os
+from pathlib import Path
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from app.services import conversion
+from app.utils.validate import validate_df
 
 def test_convert_to_parquet():
     """
     Tests the convert_to_parquet function and checks if the data from the sample .csv files properly converts into .parquet files.
     """
 
+    source_dir = Path(__file__).resolve().parent / "conversion_samples"
+    data_folder = f"{source_dir}{os.sep}"
+
     # run the conversion function on the sample .csv files
-    generated_file_paths: list[str] = conversion.convert_to_parquet("tests/conversion_samples/")
+    conversion.convert_to_parquet(data_folder)
 
-    # combine all original .csv files into a single DataFrame
-    source_dir = "tests/conversion_samples/"
-    csv_file_paths: list[str] = sorted(
-        [
-            os.path.join(source_dir, file_name)
-            for file_name in os.listdir(source_dir)
-            if file_name.endswith(".csv")
-        ]
+    # combine all source .csv files
+    csv_file_paths = sorted(source_dir.glob("*.csv"))
+    source_df: pd.DataFrame = pd.concat(
+        (validate_df(pd.read_csv(path)) for path in csv_file_paths),
+        ignore_index=True,
     )
-    source_df: pd.DataFrame = pd.concat((pd.read_csv(path) for path in csv_file_paths), ignore_index=True)
 
-    # define the columns that should be present in each generated .parquet file
-    table_columns: dict[str, list[str]] = {
-        "transactions": ["TransactionID", "Date", "StoreID", "ProductID", "Quantity", "UnitPrice", "DiscountPercent", "TaxAmount", "ShippingCost", "TotalAmount"],
-        "stores": ["StoreID", "StoreLocation", "Region", "State"],
-        "dates": ["Date"],
-        "products": ["ProductID", "ProductName", "Category", "SubCategory"],
-        "customers": ["CustomerID", "CustomerName", "Segment"],
-    }
+    sales_dir = source_dir / "sales"
+    parquet_file_paths = sorted(sales_dir.glob("year=*/month=*/data.parquet"))
+    assert parquet_file_paths, "No partitioned parquet files were generated."
 
-    # validate the generated .parquet file against source .csv data
-    for table_name, columns in table_columns.items():
-        parquet_path = os.path.join(source_dir, f"{table_name}.parquet")
-        expected_df = source_df[columns].reset_index(drop=True)
-        actual_df = pd.read_parquet(parquet_path).reset_index(drop=True)
+    actual_df: pd.DataFrame = pd.concat(
+        (pd.read_parquet(path) for path in parquet_file_paths),
+        ignore_index=True,
+    )
 
-        assert_frame_equal(expected_df, actual_df, check_dtype=False)
+    # sort for deterministic comparison across partition write/read order.
+    expected_sorted = source_df.sort_values(by=["TransactionID"]).reset_index(drop=True)
+    actual_sorted = actual_df.sort_values(by=["TransactionID"]).reset_index(drop=True)
 
-    # check if the conversion function still reports generated outputs
-    assert len(generated_file_paths) == len(table_columns)
+    assert_frame_equal(expected_sorted, actual_sorted, check_dtype=False)

@@ -40,3 +40,4 @@ logs/*
 # Carl's API
 *.json
 *.parquet
+*_metadata

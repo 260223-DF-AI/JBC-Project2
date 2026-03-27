@@ -128,17 +128,17 @@ def upload_parquet_files(
             logger.debug(f"Processing file {file_idx}/{len(parquet_files)}: {file_name}")
             # Compute local CRC32C
             local_crc = compute_local_crc32c(str(file_path))
-            # Check audit log to prevent duplicate processing
-            if check_audit_log("audit_log.json", local_crc, source_system, table_name):
-                logger.info(f"File {file_name} already processed according to audit log, skipping.")
-                results["skipped"].append({"name": file_path.name, "hash": local_crc})
-                continue
             # Construct GCS blob path
             relative_path = file_path.relative_to(local_path)
             partition_parts = [p for p in relative_path.parts[:-1]]  # get hive partition parts (year, month), exclude the filename
             partition = "/".join(partition_parts) if partition_parts else "none"
             blob_name = f"{source_system}/{relative_path.as_posix()}"
             blob = bucket.blob(blob_name)
+            # Check audit log to prevent duplicate processing
+            if check_audit_log("logs/audit_log.json", local_crc, source_system, partition):
+                logger.info(f"File {file_name} already processed according to audit log, skipping.")
+                results["skipped"].append({"name": file_path.name, "hash": local_crc})
+                continue
             # If blob already uploaded to bucket and has matching hash, skip this file since the GCS copy is the same, don't need to reupload
             if blob_check(blob, local_crc):
                 logger.info(f"File {file_name} already exists in GCS with matching hash, skipping.")
@@ -149,7 +149,7 @@ def upload_parquet_files(
             upload_single_file(blob, file_path, local_crc, chunk_size_mb)
             results["uploaded"].append({"name": file_path.name, "hash": local_crc})
 
-            log_audit_entry("audit_log.json", {
+            log_audit_entry("logs/audit_log.json", {
                     "timestamp": datetime.now(),
                     "source_system": source_system,
                     "table_name": table_name,
@@ -191,19 +191,10 @@ def fetch_creds():
     creds_path = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")).resolve()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path)
 
-    # remove manual proceed. we ALWAYS want to proceed. we be proceedin' on the regular
-    # proceed = ""
-    # while True:
-    #     proceed = input("Credentials loaded. Proceed with connection? (y/n) ").lower()
-    #     if proceed in ["y", "yes"]:
-    #         break
-    #     elif proceed in ["n", "no"]:
-    #         sys.exit()
-
 if __name__ == "__main__":
     from app.services.conversion import convert_to_parquet
 
-    # convert_to_parquet("data/")
+    convert_to_parquet("data/")
 
     fetch_creds()
 

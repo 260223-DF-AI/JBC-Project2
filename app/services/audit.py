@@ -21,9 +21,9 @@ def log_audit_entry(log_file: str, entry: dict):
     except Exception as e:
         logger.error(f"Failed to write audit log: {e}")
 
-def check_audit_log(log_file: str, file_hash: str, source_system: str, table_name: str) -> bool:
+def check_audit_log(log_file: str, file_hash: str, source_system: str, partition: str) -> bool:
     """
-    Check if a file with the given hash has already been processed for the source_system and table_name.
+    Check if a file with the given hash has already been processed for the source_system and partition.
     Returns True if already processed (skip), False otherwise.
     """
     try:
@@ -33,7 +33,7 @@ def check_audit_log(log_file: str, file_hash: str, source_system: str, table_nam
         with open(log_path, 'r') as f:
             logs = json.load(f)
         for entry in logs:
-            if entry.get("source_system") == source_system and entry.get("table_name") == table_name:
+            if entry.get("source_system") == source_system and entry.get("partition") == partition:
                 for uploaded in entry.get("uploaded_files", []):
                     if isinstance(uploaded, dict) and uploaded.get("hash") == file_hash:
                         return True

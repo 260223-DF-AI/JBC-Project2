@@ -59,12 +59,10 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
         for chunk in csv_chunks:
             df = validate_df(chunk)
             
-            # group chunks by (year, month)
-            for year in df['year'].unique():
-                for month in df['month'].unique():
-                    partition_key = (year, month)
-                    partition_data = df[(df['year'] == year) & (df['month'] == month)]
-                    partitions[partition_key].append(partition_data)
+            # group chunks by actual (year, month) pairs present in rows
+            for (year, month), partition_data in df.groupby(['year', 'month'], sort=False):
+                partition_key = (year, month)
+                partitions[partition_key].append(partition_data)
     
     # write one file per partition
     file_path: str = f"{data_folder}sales"
@@ -96,6 +94,10 @@ def convert_to_parquet(data_folder: str, chunk_size: int = 10_000):
     for (year, month), dfs in partitions.items():
         # combine all chunks for this partition
         combined_df = pd.concat(dfs, ignore_index=True)
+        if combined_df.empty:
+            logger.info(f"Skipping empty partition year={year}/month={month}")
+            continue
+
         table = pa.Table.from_pandas(combined_df, schema=schema)
         
         # write to partitioned directory

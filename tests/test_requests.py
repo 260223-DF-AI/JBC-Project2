@@ -16,7 +16,7 @@ def test_convert_base_case_success(monkeypatch):
     monkeypatch.setattr(data_files, "convert_to_parquet", lambda _folder: None)
     monkeypatch.setattr(data_files, "upload_parquet_files", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(data_files, "construct_external_tables", lambda: None)
-    monkeypatch.setattr(data_files, "find_disk_savings_pct", lambda: 25.0)
+    monkeypatch.setattr(data_files, "find_disk_savings_pct", lambda *_args, **_kwargs: 25.0)
 
     response = client.post("/convert/", params={"data_folder": "tests/conversion_samples/"})
 

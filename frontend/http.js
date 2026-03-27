@@ -53,8 +53,8 @@ export async function convertData() {
             console.warn('No JSON payload from convert endpoint', jsonErr);
         }
 
-        const payload = result ? JSON.stringify(result) : 'No response body';
-        setStatus(`Convert success: ${payload}`, 'text-green-600');
+        const statusMessage = result?.status || 'No response body';
+        setStatus(`Convert result: ${statusMessage}`, 'text-green-600');
     } catch (error) {
         console.error('Convert Error:', error);
         setStatus('Failed to reach API. Ensure FastAPI is running on localhost:8000.', 'text-red-600');
